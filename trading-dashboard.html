@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ninja Trading Journal</title>
+<link rel="icon" href="ninja.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#080c10;--card:#0d1219;--card2:#111820;--card3:#161e28;
+  --border:#1a2332;--border2:#243040;--border3:#2d3f52;
+  --text:#dce8f5;--muted:#5a7a9a;--muted2:#7a9abb;
+  --green:#00d97e;--green2:#00b868;--red:#ff4757;--red2:#cc3344;
+  --blue:#3d9eff;--blue2:#2980e0;--cyan:#00e5ff;
+  --purple:#b084ff;--orange:#ff9a3c;--yellow:#ffd166;
+  --accent:#1a6cff;--accent2:#1456cc;
+  --glow-blue:rgba(61,158,255,0.15);--glow-green:rgba(0,217,126,0.12);
+}
+body{font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden;}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border3);border-radius:3px}
+
+/* ── GRID NOISE BG ── */
+body::before{content:'';position:fixed;inset:0;background-image:
+  linear-gradient(var(--border) 1px,transparent 1px),
+  linear-gradient(90deg,var(--border) 1px,transparent 1px);
+  background-size:32px 32px;opacity:0.18;pointer-events:none;z-index:0;}
+
+/* ── HEADER ── */
+.header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:13px 24px;background:rgba(13,18,25,0.9);
+  border-bottom:1px solid var(--border2);
+  position:sticky;top:0;z-index:100;backdrop-filter:blur(12px);
+}
+.header-left{display:flex;align-items:center;gap:12px;}
+.header-logo{width:36px;height:36px;border-radius:8px;overflow:hidden;flex-shrink:0;}
+.header-logo img{width:100%;height:100%;object-fit:cover;}
+.header-title{font-size:17px;font-weight:800;letter-spacing:-0.4px;font-family:'Outfit',sans-serif;}
+.header-title span{color:var(--blue);}
+.header-sub{font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;letter-spacing:0.5px;}
+.header-right{display:flex;align-items:center;gap:10px;}
+
+/* ── CONN STATUS ── */
+.conn-status{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted);padding:5px 10px;background:var(--card2);border:1px solid var(--border);border-radius:6px;}
+.conn-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);}
+.conn-dot.connected{background:var(--green);box-shadow:0 0 8px var(--green);}
+.conn-dot.error{background:var(--red);}
+
+/* ── ADD BUTTON ── */
+.add-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;letter-spacing:0.3px;}
+.add-btn:hover{background:var(--accent2);transform:translateY(-1px);box-shadow:0 4px 16px rgba(26,108,255,0.35);}
+
+/* ── PORT BAR ── */
+.port-bar{
+  display:flex;align-items:center;background:var(--card);
+  border-bottom:1px solid var(--border2);padding:0 24px;overflow-x:auto;
+  position:relative;z-index:1;
+}
+.port-tab{
+  display:flex;align-items:center;gap:7px;padding:11px 16px;
+  font-size:12px;font-weight:600;color:var(--muted);border:none;
+  background:transparent;cursor:pointer;border-bottom:2px solid transparent;
+  transition:all 0.15s;white-space:nowrap;font-family:'Outfit',sans-serif;
+}
+.port-tab:hover{color:var(--text);}
+.port-tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.port-tab .tab-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0;}
+.port-tab-add{padding:11px 14px;font-size:18px;color:var(--muted);border:none;background:transparent;cursor:pointer;transition:color 0.15s;}
+.port-tab-add:hover{color:var(--green);}
+
+/* ── MAIN ── */
+.main{padding:16px 24px 40px;max-width:1500px;margin:0 auto;position:relative;z-index:1;}
+
+/* ── PORT LABEL BAR ── */
+.port-label-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px 0;max-width:1500px;margin:0 auto;position:relative;z-index:1;}
+.port-name-badge{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--blue);}
+.port-color-dot{width:10px;height:10px;border-radius:50%;}
+
+/* ── NO PORT MSG ── */
+.no-port-msg{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:55vh;gap:16px;text-align:center;
+}
+.no-port-msg .big-icon{font-size:56px;opacity:0.3;}
+.no-port-msg h2{font-size:18px;font-weight:700;color:var(--muted2);}
+.no-port-msg p{font-size:13px;color:var(--muted);}
+
+/* ── STATS GRID ── */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;}
+.stats-row2{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:12px;}
+.stats-row3{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.stat-card{
+  background:var(--card);border:1px solid var(--border);border-radius:12px;
+  padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;
+  transition:border-color 0.2s,background 0.2s;position:relative;overflow:hidden;
+}
+.stat-card::before{content:'';position:absolute;inset:0;opacity:0;background:var(--glow-blue);transition:opacity 0.3s;}
+.stat-card:hover{border-color:var(--border3);}
+.stat-card:hover::before{opacity:1;}
+.stat-info{flex:1;}
+.stat-label{font-size:10px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:0.8px;text-transform:uppercase;}
+.stat-value{font-size:22px;font-weight:800;letter-spacing:-0.8px;line-height:1;font-family:'Outfit',sans-serif;}
+.stat-value.green{color:var(--green);}
+.stat-value.red{color:var(--red);}
+.stat-value.blue{color:var(--blue);}
+.stat-value.orange{color:var(--orange);}
+.stat-value.purple{color:var(--purple);}
+.stat-value.cyan{color:var(--cyan);}
+.stat-sub{font-size:10px;color:var(--muted);margin-top:4px;}
+.stat-icon{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.stat-icon.green{background:rgba(0,217,126,0.12);}
+.stat-icon.blue{background:rgba(61,158,255,0.12);}
+.stat-icon.orange{background:rgba(255,154,60,0.12);}
+.stat-icon.red{background:rgba(255,71,87,0.12);}
+.stat-icon.purple{background:rgba(176,132,255,0.12);}
+.stat-icon.cyan{background:rgba(0,229,255,0.12);}
+
+/* ── SECTION LABEL ── */
+.section-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.section-label::after{content:'';flex:1;height:1px;background:var(--border2);}
+
+/* ── CHARTS ROW ── */
+.charts-row{display:grid;grid-template-columns:1.5fr 1fr;gap:12px;margin-bottom:14px;}
+.chart-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.chart-title{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:700;margin-bottom:14px;color:var(--muted2);text-transform:uppercase;letter-spacing:0.5px;}
+
+/* ── WIN RATE GRID ── */
+.winrate-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
+.winrate-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;}
+.winrate-title{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:12px;}
+.bar-item{display:flex;align-items:center;gap:7px;margin-bottom:7px;}
+.bar-label{font-size:10px;color:var(--muted2);width:60px;flex-shrink:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-track{flex:1;height:14px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:3px;transition:width 0.8s ease;}
+.bar-pct{font-size:10px;color:var(--muted);width:28px;flex-shrink:0;font-family:'Space Mono',monospace;}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.82);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border3);border-radius:16px;width:720px;max-width:96vw;max-height:93vh;overflow-y:auto;animation:modalIn 0.22s ease;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.95) translateY(-12px)} to{opacity:1;transform:scale(1) translateY(0)}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border2);background:var(--card2);border-radius:16px 16px 0 0;}
+.modal-tabs{display:flex;gap:4px;}
+.modal-tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:700;cursor:pointer;border:none;background:transparent;color:var(--muted);transition:all 0.15s;font-family:'Outfit',sans-serif;letter-spacing:0.3px;}
+.modal-tab.active{background:var(--accent);color:#fff;}
+.modal-close{width:30px;height:30px;border-radius:7px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.modal-close:hover{background:var(--border2);color:var(--text);}
+.modal-body{padding:20px;}
+
+/* ── FORM ── */
+.form-row{display:grid;gap:10px;margin-bottom:10px;}
+.form-row.cols2{grid-template-columns:1fr 1fr;}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr;}
+.form-row.cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
+.form-row.cols5{grid-template-columns:1fr 1fr 1fr 1fr 1fr;}
+.field label{display:block;font-size:10px;color:var(--muted2);margin-bottom:5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.field input,.field select,.field textarea{
+  width:100%;background:var(--bg);border:1px solid var(--border2);
+  border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;
+  outline:none;transition:border-color 0.2s,box-shadow 0.2s;
+  -webkit-appearance:none;font-family:'Outfit',sans-serif;
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,108,255,0.15);}
+.field select option{background:var(--card2);}
+.field textarea{resize:vertical;min-height:60px;}
+
+/* ── PORT SELECT ── */
+.port-select-row{display:flex;align-items:center;gap:10px;background:rgba(26,108,255,0.08);border:1px solid rgba(26,108,255,0.3);border-radius:10px;padding:10px 14px;margin-bottom:12px;}
+.port-select-row label{font-size:12px;color:var(--blue);font-weight:700;white-space:nowrap;}
+.port-select-row select{flex:1;background:var(--bg);border:1px solid var(--border2);border-radius:7px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;cursor:pointer;}
+
+/* ── BOX CONTAINERS ── */
+.price-box{background:rgba(61,158,255,0.06);border:1px solid rgba(61,158,255,0.35);border-radius:10px;padding:12px 14px 10px;margin-bottom:10px;}
+.price-box-title{font-size:10px;font-weight:800;color:var(--blue);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+
+.calc-box{background:rgba(0,217,126,0.06);border:1px solid rgba(0,217,126,0.3);border-radius:10px;padding:12px 14px 10px;margin-bottom:10px;}
+.calc-box-title{font-size:10px;font-weight:800;color:var(--green);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;}
+
+/* ── AUTO BADGE ── */
+.auto-badge{font-size:9px;background:rgba(61,158,255,0.15);color:var(--blue);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;letter-spacing:0.3px;}
+.calc-badge{font-size:9px;background:rgba(0,217,126,0.12);color:var(--green);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;}
+
+/* ── SAVE BTN ── */
+.save-btn{width:100%;padding:12px;background:var(--accent);color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;transition:all 0.2s;margin-top:8px;font-family:'Outfit',sans-serif;letter-spacing:0.3px;}
+.save-btn:hover{background:var(--accent2);box-shadow:0 4px 20px rgba(26,108,255,0.35);}
+.save-btn:disabled{opacity:0.45;cursor:not-allowed;}
+
+/* ── SECTION TOGGLES ── */
+.settings-section{display:none;}
+.settings-section.show{display:block;}
+.log-section{display:none;}
+.log-section.show{display:block;}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:22px;right:22px;background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:11px 16px;font-size:13px;z-index:999;transform:translateY(80px);opacity:0;transition:all 0.3s;display:flex;align-items:center;gap:8px;min-width:220px;font-family:'Outfit',sans-serif;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.success{border-color:rgba(0,217,126,0.4);}
+.toast.error{border-color:rgba(255,71,87,0.4);}
+
+/* ── LOADING ── */
+.loading-overlay{position:fixed;inset:0;background:rgba(8,12,16,0.88);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(4px);}
+.loading-overlay.show{display:flex;}
+.loading-spinner{width:38px;height:38px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{font-size:13px;color:var(--muted2);}
+
+/* ── PM MODAL ── */
+.pm-list{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;min-height:40px;}
+.pm-item{display:flex;align-items:center;gap:10px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;}
+.pm-color{width:13px;height:13px;border-radius:50%;flex-shrink:0;}
+.pm-name{flex:1;font-size:13px;font-weight:600;}
+.pm-meta{font-size:11px;color:var(--muted);}
+.pm-del{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.pm-del:hover{border-color:var(--red);color:var(--red);background:rgba(255,71,87,0.1);}
+.pm-add-area{background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:14px;}
+.pm-add-title{font-size:10px;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;font-weight:700;}
+.color-picker-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
+.cp-dot{width:22px;height:22px;border-radius:50%;cursor:pointer;border:2px solid transparent;transition:all 0.15s;}
+.cp-dot.sel{border-color:#fff;transform:scale(1.18);}
+.pm-form-row{display:grid;grid-template-columns:1fr 130px auto;gap:8px;}
+.pm-form-row input{background:var(--card);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;}
+.pm-form-row input:focus{border-color:var(--accent);}
+.pm-add-btn{padding:9px 14px;background:var(--green);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;white-space:nowrap;}
+.pm-edit-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:11px;display:inline-flex;align-items:center;justify-content:center;transition:all 0.15s;margin-right:4px;}
+.pm-edit-btn:hover{border-color:var(--blue);color:var(--blue);background:rgba(61,158,255,0.1);}
+.pm-edit-panel{background:rgba(26,108,255,0.08);border:1px solid rgba(26,108,255,0.35);border-radius:10px;padding:14px;margin-bottom:12px;}
+.pm-edit-title{font-size:10px;color:var(--blue);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;}
+.pm-edit-grid{display:grid;grid-template-columns:1fr 130px;gap:8px;margin-bottom:10px;}
+.pm-edit-grid input{background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:9px 12px;color:var(--text);font-size:13px;outline:none;}
+.pm-edit-grid input:focus{border-color:var(--accent);}
+.pm-edit-actions{display:flex;gap:8px;}
+.pm-edit-save{flex:1;padding:8px;background:var(--accent);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;}
+.pm-edit-cancel{padding:8px 14px;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:8px;font-size:13px;cursor:pointer;}
+
+/* ── CONFIG BANNER ── */
+.config-banner{background:rgba(26,108,255,0.1);border:1px solid rgba(26,108,255,0.3);border-radius:10px;padding:12px 14px;margin-bottom:16px;font-size:12px;color:var(--muted2);line-height:1.8;}
+.config-banner strong{color:var(--blue);}
+.config-banner code{background:var(--bg);padding:1px 6px;border-radius:4px;font-size:11px;color:var(--cyan);font-family:'Space Mono',monospace;}
+
+/* ── FORM DIVIDER ── */
+.form-divider{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;padding:6px 0 4px;border-bottom:1px solid var(--border2);margin-bottom:10px;}
+
+/* ── READONLY INPUT ── */
+input[readonly]{opacity:0.6;cursor:default !important;}
+
+/* ── RISK SETTINGS BAR ── */
+.risk-bar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:rgba(255,154,60,0.07);border:1px solid rgba(255,154,60,0.35);border-radius:10px;padding:10px 14px;margin-bottom:10px;}
+.risk-bar .rb-label{font-size:11px;font-weight:800;color:var(--orange);white-space:nowrap;text-transform:uppercase;letter-spacing:0.5px;}
+.risk-bar .rb-input{background:var(--bg);border:1px solid rgba(255,154,60,0.5);border-radius:7px;padding:7px 10px;color:var(--orange);font-size:15px;font-weight:800;outline:none;width:100px;font-family:'Space Mono',monospace;transition:border-color 0.2s,box-shadow 0.2s;}
+.risk-bar .rb-input:focus{border-color:var(--orange);box-shadow:0 0 0 3px rgba(255,154,60,0.18);}
+.risk-bar .rb-unit{font-size:13px;color:var(--orange);font-weight:700;}
+.risk-bar .rb-save{padding:6px 12px;background:rgba(255,154,60,0.18);border:1px solid rgba(255,154,60,0.45);color:var(--orange);border-radius:7px;font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+.risk-bar .rb-save:hover{background:rgba(255,154,60,0.32);}
+.risk-bar .rb-ok{font-size:10px;color:var(--green);font-weight:700;opacity:0;transition:opacity 0.4s;}
+.risk-bar .rb-ok.show{opacity:1;}
+.risk-bar .rb-desc{font-size:10px;color:var(--muted);flex-basis:100%;margin-top:2px;}
+
+/* ── LOT CALC BOX ── */
+.lot-box{background:rgba(0,229,255,0.05);border:1px solid rgba(0,229,255,0.28);border-radius:10px;padding:12px 14px 10px;margin-bottom:10px;}
+.lot-box-title{font-size:10px;font-weight:800;color:var(--cyan);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.lot-box-title .asset-tag{background:rgba(0,229,255,0.12);color:var(--cyan);padding:2px 8px;border-radius:4px;font-size:10px;}
+.lot-grid{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:10px;}
+.lot-note{font-size:10px;color:var(--muted);margin-top:8px;line-height:1.5;}
+.lot-note span{color:var(--cyan);font-weight:700;}
+
+/* ── RISK WARNING ── */
+.risk-warn{display:none;align-items:center;gap:8px;background:rgba(255,71,87,0.1);border:1px solid rgba(255,71,87,0.45);border-radius:8px;padding:9px 12px;margin-bottom:10px;font-size:12px;font-weight:600;color:var(--red);animation:warnPulse 1.6s ease-in-out infinite;}
+.risk-warn.show{display:flex;}
+@keyframes warnPulse{0%,100%{border-color:rgba(255,71,87,0.45)}50%{border-color:rgba(255,71,87,0.9);background:rgba(255,71,87,0.16);}}
+
+/* ── FILTER BAR ── */
+.filter-bar{
+  background:var(--card);border:1px solid var(--border2);border-radius:12px;
+  padding:12px 16px;margin-bottom:14px;
+}
+.filter-bar-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:0;gap:10px;}
+.filter-bar-top.open{margin-bottom:12px;}
+.filter-title{font-size:11px;font-weight:700;color:var(--muted2);letter-spacing:1px;text-transform:uppercase;display:flex;align-items:center;gap:6px;}
+.filter-toggle-btn{display:flex;align-items:center;gap:6px;padding:5px 12px;border:1px solid var(--border2);border-radius:7px;background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Outfit',sans-serif;}
+.filter-toggle-btn:hover{border-color:var(--blue);color:var(--blue);}
+.filter-toggle-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(61,158,255,0.1);}
+.filter-clear-btn{padding:5px 12px;border:1px solid rgba(255,71,87,0.4);border-radius:7px;background:transparent;color:var(--red);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Outfit',sans-serif;}
+.filter-clear-btn:hover{background:rgba(255,71,87,0.1);}
+.filter-grid{display:none;grid-template-columns:repeat(4,1fr);gap:8px;}
+.filter-grid.show{display:grid;}
+.filter-field label{display:block;font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;}
+.filter-field select,.filter-field input{
+  width:100%;background:var(--bg);border:1px solid var(--border2);
+  border-radius:7px;padding:7px 10px;color:var(--text);font-size:12px;
+  outline:none;transition:border-color 0.2s;
+  -webkit-appearance:none;font-family:'Outfit',sans-serif;
+}
+.filter-field select:focus,.filter-field input:focus{border-color:var(--blue);}
+.filter-field select option{background:var(--card2);}
+.filter-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;border-radius:9px;background:var(--blue);color:#fff;font-size:10px;font-weight:800;padding:0 5px;margin-left:4px;}
+.filter-active-summary{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.filter-tag{display:flex;align-items:center;gap:4px;padding:3px 9px;background:rgba(61,158,255,0.12);border:1px solid rgba(61,158,255,0.3);border-radius:20px;font-size:10px;color:var(--blue);font-weight:600;}
+.filter-tag button{background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;padding:0;line-height:1;opacity:0.7;}
+.filter-tag button:hover{opacity:1;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .stats-row,.stats-row2,.stats-row3{grid-template-columns:repeat(2,1fr);}
+  .charts-row{grid-template-columns:1fr;}
+  .winrate-grid{grid-template-columns:1fr 1fr;}
+  .form-row.cols4,.form-row.cols5{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:600px){
+  .stats-row,.stats-row2,.stats-row3{grid-template-columns:1fr 1fr;}
+  .form-row.cols3{grid-template-columns:1fr 1fr;}
+  .winrate-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">กำลังโหลด...</div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo"><img src="ninja.png" alt="logo" onerror="this.parentElement.innerHTML='🥷'"></div>
+    <div>
+      <div class="header-title">Trading <span>Data</span></div>
+      <div class="header-sub">JOURNAL v2.0</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="conn-status"><div class="conn-dot" id="connDot"></div><span id="connText">Demo Mode</span></div>
+    <button class="add-btn" onclick="openModal()">＋ Add Trade / Settings</button>
+  </div>
+</div>
+
+<!-- PORT BAR -->
+<div class="port-bar" id="portBar"></div>
+
+<!-- PORT LABEL -->
+<div class="port-label-bar">
+  <div class="port-name-badge">
+    <div class="port-color-dot" id="portColorDot"></div>
+    <span id="portNameLabel">—</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div id="noPortMsg" class="main no-port-msg" style="display:none;">
+  <div class="big-icon">🥷</div>
+  <h2>ยังไม่มีพอร์ต</h2>
+  <p>กดปุ่ม <strong style="color:var(--green)">＋</strong> ในแถบด้านบนเพื่อเพิ่มพอร์ตแรก</p>
+</div>
+
+<div id="dashMain" class="main" style="display:none;">
+
+  <!-- FILTER BAR -->
+  <div class="filter-bar" id="filterBar">
+    <div class="filter-bar-top" id="filterBarTop">
+      <div class="filter-title">🔍 Filter Trades <span class="filter-badge" id="filterCount" style="display:none">0</span></div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="filter-clear-btn" id="filterClearBtn" onclick="clearFilters()" style="display:none">✕ Clear</button>
+        <button class="filter-toggle-btn" id="filterToggleBtn" onclick="toggleFilters()">▼ Filter</button>
+      </div>
+    </div>
+    <div class="filter-grid" id="filterGrid">
+      <div class="filter-field">
+        <label>Asset</label>
+        <select id="ffAsset" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="GC1">GC1</option>
+          <option value="MGC1">MGC1</option>
+          <option value="NQ1">NQ1</option>
+          <option value="MNQ1">MNQ1</option>
+          <option value="XAUUSD">XAUUSD</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Result</label>
+        <select id="ffResult" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="TP">TP (Win)</option>
+          <option value="Loss">Loss (SL)</option>
+          <option value="Miss">Miss</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Day</label>
+        <select id="ffDay" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Mon">Mon</option><option value="Tue">Tue</option>
+          <option value="Wed">Wed</option><option value="Thu">Thu</option>
+          <option value="Fri">Fri</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Time Slot</label>
+        <select id="ffTime" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="05:00-07:00">05:00-07:00</option>
+          <option value="07:00-09:00">07:00-09:00</option>
+          <option value="09:00-11:00">09:00-11:00</option>
+          <option value="11:00-14:00">11:00-14:00</option>
+          <option value="14:00-16:00">14:00-16:00</option>
+          <option value="16:00-18:00">16:00-18:00</option>
+          <option value="18:00-19:00">18:00-19:00</option>
+          <option value="19:00-21:00">19:00-21:00</option>
+          <option value="21:00-23:00">21:00-23:00</option>
+          <option value="23:00-01:00">23:00-01:00</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Code</label>
+        <select id="ffCode" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Code1">Code1</option>
+          <option value="Code2">Code2</option>
+          <option value="Nochi">Nochi</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Duration (≤ นาที)</label>
+        <input type="number" id="ffDuration" placeholder="เช่น 30" min="1" oninput="applyFilters()">
+      </div>
+      <div class="filter-field">
+        <label>Position</label>
+        <select id="ffPosition" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Buy">Buy</option>
+          <option value="Sell">Sell</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Session</label>
+        <select id="ffSession" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Out">Out</option>
+          <option value="AS">AS (Asia)</option>
+          <option value="LO">LO (London)</option>
+          <option value="NY">NY (New York)</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Mode</label>
+        <select id="ffMode" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Be">Be</option>
+          <option value="CHe">CHe</option>
+          <option value="BE>B">BE&gt;B</option>
+          <option value="CHe>B">CHe&gt;B</option>
+          <option value="BE>CHe">BE&gt;CHe</option>
+          <option value="CHe>BE">CHe&gt;BE</option>
+          <option value="BE>BE">BE&gt;BE</option>
+          <option value="CHe>CHe">CHe&gt;CHe</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Class</label>
+        <select id="ffClass" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="A+">A+</option>
+          <option value="A">A</option>
+          <option value="B">B</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Model</label>
+        <select id="ffModel" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="RBR">RBR</option><option value="RBD">RBD</option>
+          <option value="DBD">DBD</option><option value="DBR">DBR</option>
+          <option value="R">R</option><option value="D">D</option>
+        </select>
+      </div>
+      <div class="filter-field">
+        <label>Mitigated Zone</label>
+        <select id="ffZone" onchange="applyFilters()">
+          <option value="">All</option>
+          <option value="Bos1">Bos1</option>
+          <option value="Bos1 ย้าย">Bos1 ย้าย</option>
+          <option value="Bos สุดท้าย">Bos สุดท้าย</option>
+          <option value="ไม่มี">ไม่มี</option>
+        </select>
+      </div>
+    </div>
+    <div class="filter-active-summary" id="filterSummary" style="display:none;"></div>
+  </div>
+
+  <!-- ROW 1: Balance / PnL / WinRate / Trades / DD -->
+  <div class="section-label">📊 Performance Overview</div>
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Balance</div><div class="stat-value blue" id="statBalance">$0.00</div><div class="stat-sub" id="statBalanceSub">Initial: $0</div></div><div class="stat-icon blue">💰</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Net PnL</div><div class="stat-value green" id="statPnl">+$0.00</div><div class="stat-sub" id="statPnlSub">0.00% Return</div></div><div class="stat-icon green">📈</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Win Rate</div><div class="stat-value green" id="statWinRate">0.0%</div><div class="stat-sub" id="statWinSub">0 Trades</div></div><div class="stat-icon green">🎯</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Max Drawdown</div><div class="stat-value red" id="statDrawdown">0.00%</div><div class="stat-sub">Peak to trough</div></div><div class="stat-icon red">📉</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Profit Factor</div><div class="stat-value orange" id="statPF">0.00</div><div class="stat-sub">GP / GL</div></div><div class="stat-icon orange">⚖️</div></div>
+  </div>
+
+  <!-- ROW 2: RR / Expectancy / ConLoss / SumConLoss / SumDD -->
+  <div class="stats-row2">
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Avg RR</div><div class="stat-value blue" id="statRRR">1:0.00</div><div class="stat-sub">Risk Reward Ratio</div></div><div class="stat-icon blue">📐</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Expectancy</div><div class="stat-value purple" id="statExpect">$0.00</div><div class="stat-sub">Per trade avg</div></div><div class="stat-icon purple">🧮</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Max Con Loss</div><div class="stat-value red" id="statConLoss">0</div><div class="stat-sub">Consecutive losses</div></div><div class="stat-icon red">🔴</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Sum Con Loss $</div><div class="stat-value red" id="statSumConLoss">$0.00</div><div class="stat-sub">Max losing streak $</div></div><div class="stat-icon red">💸</div></div>
+    <div class="stat-card"><div class="stat-info"><div class="stat-label">Sum DD Loss</div><div class="stat-value red" id="statSumDD">$0.00</div><div class="stat-sub">Total drawdown $</div></div><div class="stat-icon red">📊</div></div>
+  </div>
+
+  <!-- CHARTS -->
+  <div class="charts-row">
+    <div class="chart-card"><div class="chart-title">📈 Equity Curve</div><div style="height:210px;position:relative;"><canvas id="equityChart"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">📅 Monthly PnL</div><div style="height:210px;position:relative;"><canvas id="monthlyChart"></canvas></div></div>
+  </div>
+
+  <!-- WIN RATE BREAKDOWNS -->
+  <div class="section-label">🔬 Win Rate Analysis</div>
+  <div class="winrate-grid">
+    <div class="winrate-card"><div class="winrate-title">By Asset</div><div id="wrAsset"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Session</div><div id="wrSession"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Code</div><div id="wrCode"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Mode</div><div id="wrMode"></div></div>
+  </div>
+  <div class="winrate-grid">
+    <div class="winrate-card"><div class="winrate-title">By Class</div><div id="wrClass"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Model</div><div id="wrModel"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Time Slot</div><div id="wrTime"></div></div>
+    <div class="winrate-card"><div class="winrate-title">By Day</div><div id="wrDay"></div></div>
+  </div>
+  <div class="winrate-grid" style="grid-template-columns:1fr;">
+    <div class="winrate-card"><div class="winrate-title">By Mitigated Zone</div><div id="wrZone"></div></div>
+  </div>
+
+</div>
+
+<!-- ══════════════════ MODAL: LOG TRADE / SETTINGS ══════════════════ -->
+<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-tabs">
+        <button class="modal-tab active" onclick="switchTab('log')">📝 Log Trade</button>
+        <button class="modal-tab" onclick="switchTab('settings')">⚙️ Settings</button>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- ── LOG SECTION ── -->
+      <div class="log-section show" id="logSection">
+
+        <!-- Portfolio -->
+        <div class="port-select-row">
+          <label>📂 Portfolio</label>
+          <select id="fPortfolio"></select>
+        </div>
+
+        <!-- ROW 1: Day(week) / Session / Date / Time Slot -->
+        <div class="form-row cols4">
+          <div class="field">
+            <label>Day</label>
+            <select id="fDay">
+              <option value="Mon">Mon</option><option value="Tue">Tue</option>
+              <option value="Wed">Wed</option><option value="Thu">Thu</option>
+              <option value="Fri">Fri</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Session</label>
+            <select id="fSession">
+              <option value="Out">Out</option><option value="AS">AS (Asia)</option>
+              <option value="LO">LO (London)</option><option value="NY">NY (New York)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="fDate">
+          </div>
+          <div class="field">
+            <label>Time Slot</label>
+            <select id="fTimeSlot">
+              <option value="05:00-07:00">05:00-07:00</option>
+              <option value="07:00-09:00">07:00-09:00</option>
+              <option value="09:00-11:00">09:00-11:00</option>
+              <option value="11:00-14:00">11:00-14:00</option>
+              <option value="14:00-16:00">14:00-16:00</option>
+              <option value="16:00-18:00">16:00-18:00</option>
+              <option value="18:00-19:00">18:00-19:00</option>
+              <option value="19:00-21:00">19:00-21:00</option>
+              <option value="21:00-23:00">21:00-23:00</option>
+              <option value="23:00-01:00">23:00-01:00</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ROW 2: Duration / Time Entry / Code / Class / Asset -->
+        <div class="form-row cols5">
+          <div class="field">
+            <label>Asset</label>
+            <select id="fAsset" onchange="calcAuto()">
+              <option value="GC1">GC1</option>
+              <option value="MGC1">MGC1</option>
+              <option value="NQ1">NQ1</option>
+              <option value="MNQ1">MNQ1</option>
+              <option value="XAUUSD">XAUUSD</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Duration (นาที)</label>
+            <input type="number" id="fDuration" placeholder="เช่น 15" min="1" step="1">
+          </div>
+          <div class="field">
+            <label>Time Entry</label>
+            <input type="time" id="fTimeEntry">
+          </div>
+          <div class="field">
+            <label>Code</label>
+            <select id="fCode">
+              <option value="Code1">Code1</option>
+              <option value="Code2">Code2</option>
+              <option value="Nochi">Nochi</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Class</label>
+            <select id="fClass">
+              <option value="A+">A+</option>
+              <option value="A">A</option>
+              <option value="B">B</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- ROW 3: Mode / Model / Mitigated Zone -->
+        <div class="form-row cols3">
+          <div class="field">
+            <label>Mode</label>
+            <select id="fMode">
+              <option value="Be">Be</option>
+              <option value="CHe">CHe</option>
+              <option value="BE>B">BE&gt;B</option>
+              <option value="CHe>B">CHe&gt;B</option>
+              <option value="BE>CHe">BE&gt;CHe</option>
+              <option value="CHe>BE">CHe&gt;BE</option>
+              <option value="BE>BE">BE&gt;BE</option>
+              <option value="CHe>CHe">CHe&gt;CHe</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Model</label>
+            <select id="fModel">
+              <option value="RBR">RBR</option><option value="RBD">RBD</option>
+              <option value="DBD">DBD</option><option value="DBR">DBR</option>
+              <option value="R">R</option><option value="D">D</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Mitigated Zone</label>
+            <select id="fZone">
+              <option value="Bos1">Bos1</option>
+              <option value="Bos1 ย้าย">Bos1 ย้าย</option>
+              <option value="Bos สุดท้าย">Bos สุดท้าย</option>
+              <option value="ไม่มี">ไม่มี</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PRICE BOX -->
+        <div class="price-box">
+          <div class="price-box-title" style="display:flex;align-items:center;justify-content:space-between;">
+            <span>📌 Price</span>
+            <span id="assetSpecInfo" style="font-size:10px;font-weight:600;color:var(--cyan);letter-spacing:0.3px;"></span>
+          </div>
+          <div class="form-row cols3" style="margin-bottom:0;">
+            <div class="field"><label>Entry</label><input type="number" id="fEntry" placeholder="2650.00" step="0.01" oninput="calcAuto()"></div>
+            <div class="field"><label>Target</label><input type="number" id="fTarget" placeholder="2670.00" step="0.01" oninput="calcAuto()"></div>
+            <div class="field"><label>Stop Loss</label><input type="number" id="fSL" placeholder="2640.00" step="0.01" oninput="calcAuto()"></div>
+          </div>
+        </div>
+
+        <!-- ROW: Result / Max RR / Picture -->
+        <div class="form-row cols3">
+          <div class="field">
+            <label>Result</label>
+            <select id="fResult" onchange="calcAuto()">
+              <option value="TP">TP (Win)</option>
+              <option value="Loss">Loss (SL)</option>
+              <option value="Miss">Miss</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Max RR</label>
+            <input type="number" id="fMaxRR" placeholder="3.0" step="0.1" min="0">
+          </div>
+          <div class="field">
+            <label>Picture URL</label>
+            <input type="text" id="fPicture" placeholder="https://...">
+          </div>
+        </div>
+
+        <!-- ── RISK TARGET BAR (บันทึกค่าได้) ── -->
+        <div class="risk-bar">
+          <span class="rb-label">🎯 Risk Target</span>
+          <input type="number" id="rbRisk" class="rb-input" placeholder="100" min="1" step="1" oninput="calcAuto()">
+          <span class="rb-unit">$</span>
+          <button class="rb-save" onclick="saveRiskTarget()">💾 จำค่านี้</button>
+          <span class="rb-ok" id="rbOk">✓ บันทึกแล้ว</span>
+          <div class="rb-desc">ใช้คำนวณ Lot สำหรับ MNQ1 / MGC1 — แก้ไขได้ตลอด กด "จำค่านี้" เพื่อบันทึก</div>
+        </div>
+
+        <!-- ── WARNING ── -->
+        <div class="risk-warn" id="riskWarn">
+          <span>⚠️</span><span id="riskWarnText">Risk เกินที่กำหนด!</span>
+        </div>
+
+        <!-- ── LOT CALCULATOR BOX ── -->
+        <div class="lot-box">
+          <div class="lot-box-title">🧮 Lot Calculator <span class="asset-tag" id="lotAssetTag">—</span></div>
+          <div class="lot-grid">
+            <div class="field">
+              <label>SL Distance <span class="calc-badge">Auto</span></label>
+              <input type="text" id="fSLPoints" readonly placeholder="—">
+            </div>
+            <div class="field">
+              <label>$/Tick <span class="calc-badge">Spec</span></label>
+              <input type="text" id="fDPP" readonly placeholder="—">
+            </div>
+            <div class="field">
+              <label>Lots <span class="calc-badge">Auto</span></label>
+              <input type="text" id="fLot" readonly placeholder="—" style="font-weight:800;font-size:14px;color:var(--cyan);">
+            </div>
+            <div class="field">
+              <label>Actual Risk $ <span class="calc-badge">Auto</span></label>
+              <input type="number" id="fActualRisk" readonly placeholder="0.00" step="0.01">
+            </div>
+          </div>
+          <div class="lot-note">คำนวณ Lot เฉพาะ <span>MNQ1</span> / <span>MGC1</span> — Lot = floor(Risk ÷ SL×$/tick) &nbsp;|&nbsp; GC1/NQ1/XAUUSD = 1 contract fixed</div>
+        </div>
+
+        <!-- CALC BOX: Auto-calculated -->
+        <div class="calc-box">
+          <div class="calc-box-title">⚡ Auto Calculated</div>
+          <div class="form-row cols4" style="margin-bottom:8px;">
+            <div class="field">
+              <label>Position <span class="calc-badge">Auto</span></label>
+              <input type="text" id="fPosition" readonly placeholder="Buy / Sell">
+            </div>
+            <div class="field">
+              <label>Risk ($) <span style="font-size:9px;background:rgba(255,154,60,0.15);color:var(--orange);padding:1px 5px;border-radius:4px;margin-left:4px;font-weight:700;">Editable</span></label>
+              <input type="number" id="fRisk" placeholder="0.00" step="0.01" min="0" oninput="calcPnlFromRisk()" style="color:var(--orange);">
+            </div>
+            <div class="field">
+              <label>RR <span class="calc-badge">Auto</span></label>
+              <input type="number" id="fRR" readonly placeholder="2.00" step="0.01">
+            </div>
+            <div class="field">
+              <label>PnL ($) <span class="calc-badge">Auto</span></label>
+              <input type="number" id="fPnl" readonly placeholder="200.00" step="0.01">
+            </div>
+          </div>
+          <div class="form-row cols2" style="margin-bottom:0;">
+            <div class="field">
+              <label>TP% <span class="calc-badge">Auto</span></label>
+              <input type="text" id="fTPPct" readonly placeholder="—">
+            </div>
+            <div class="field">
+              <label>TP Reward $ <span class="calc-badge">Auto</span></label>
+              <input type="number" id="fTPDollar" readonly placeholder="0.00" step="0.01">
+            </div>
+          </div>
+        </div>
+
+        <!-- TIP / NOTE -->
+        <div class="field" style="margin-bottom:12px;">
+          <label>💡 Tip / Note</label>
+          <textarea id="fTip" placeholder="บันทึกสิ่งที่เรียนรู้, จุดที่ต้องระวัง..."></textarea>
+        </div>
+
+        <button class="save-btn" id="saveBtn" onclick="saveTrade()">💾 Save Trade</button>
+      </div>
+
+      <!-- ── SETTINGS SECTION ── -->
+      <div class="settings-section" id="settingsSection">
+        <div class="config-banner">
+          <strong>🔗 เชื่อมต่อ Google Sheets ผ่าน Apps Script</strong><br>
+          1. สร้าง Google Sheet → <strong>Extensions → Apps Script</strong><br>
+          2. วางโค้ดจาก <code>google-apps-script.gs</code> → Deploy เป็น Web App<br>
+          3. Copy URL มาวางด้านล่าง<br>
+          <em style="color:var(--green);font-size:11px;">💡 แต่ละพอร์ตจะถูกบันทึกแยก Sheet อัตโนมัติ</em>
+        </div>
+        <div class="field" style="margin-bottom:12px;">
+          <label>Google Apps Script Web App URL</label>
+          <input type="text" id="sScriptUrl" placeholder="https://script.google.com/macros/s/...">
+        </div>
+        <button class="save-btn" onclick="saveSettings()">💾 Save Settings &amp; Reload</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ MODAL: PORTFOLIO MANAGER ══════════════════ -->
+<div class="modal-overlay" id="pmOverlay" onclick="if(event.target===this)closePm()">
+  <div class="modal" style="width:500px;">
+    <div class="modal-header">
+      <span style="font-size:14px;font-weight:700;">📂 จัดการพอร์ต</span>
+      <button class="modal-close" onclick="closePm()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="pmEditPanel" style="display:none;"></div>
+      <div class="pm-list" id="pmList"></div>
+      <div class="pm-add-area">
+        <div class="pm-add-title">เพิ่มพอร์ตใหม่</div>
+        <div class="color-picker-row" id="colorPicker"></div>
+        <div class="pm-form-row">
+          <input type="text" id="pmNewName" placeholder="ชื่อพอร์ต เช่น Apex, FTMO..." maxlength="30">
+          <input type="number" id="pmNewBalance" placeholder="Balance ($)" min="0" step="1">
+          <button class="pm-add-btn" onclick="addPortfolio()">+ เพิ่ม</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><span id="toastMsg">✅ Saved!</span></div>
+
+<script>
+// ════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════
+let SCRIPT_URL   = localStorage.getItem('scriptUrl') || '';
+let portfolios   = JSON.parse(localStorage.getItem('portfolios') || '[]');
+let allTrades    = JSON.parse(localStorage.getItem('demoTrades') || '{}');
+let activePortId = localStorage.getItem('activePortId') || '';
+let equityChart  = null;
+let monthlyChart = null;
+let activeFilters = {};
+let filtersOpen = false;
+
+const PALETTE = ['#3d9eff','#00d97e','#ff4757','#ffa657','#b084ff','#00e5ff','#ffd166','#ff7b72','#79c0ff','#d2a8ff'];
+let pmColor = PALETTE[0];
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('sScriptUrl').value = SCRIPT_URL;
+  buildColorPicker();
+  initCharts();
+  renderTabs();
+  setTodayDate();
+  initRiskBar();
+
+  document.getElementById('fResult').addEventListener('change', calcAuto);
+  document.getElementById('fAsset').addEventListener('change', calcAuto);
+  document.getElementById('fEntry').addEventListener('input', calcAuto);
+  document.getElementById('fTarget').addEventListener('input', calcAuto);
+  document.getElementById('fSL').addEventListener('input', calcAuto);
+
+  // fRisk: mark as user-edited เมื่อ user พิมพ์เอง (ป้องกัน calcAuto override)
+  const riskEl = document.getElementById('fRisk');
+  riskEl.addEventListener('input', () => {
+    riskEl.dataset.userEdited = '1';
+    calcPnlFromRisk();
+  });
+  // เมื่อ clear field ให้ถอด flag ออก
+  riskEl.addEventListener('change', () => {
+    if (!riskEl.value) delete riskEl.dataset.userEdited;
+  });
+
+  if (portfolios.length === 0) {
+    showEmpty();
+  } else {
+    if (!activePortId || !portfolios.find(p => p.id === activePortId))
+      activePortId = portfolios[0].id;
+    loadPort(activePortId);
+  }
+});
+
+// ════════════════════════════════════════
+// RISK TARGET (persistent)
+// ════════════════════════════════════════
+let savedRisk = parseFloat(localStorage.getItem('riskTarget')) || 100;
+
+function initRiskBar() {
+  const el = document.getElementById('rbRisk');
+  if (el) el.value = savedRisk;
+}
+
+function saveRiskTarget() {
+  const v = parseFloat(document.getElementById('rbRisk').value);
+  if (!v || v <= 0) { toast('⚠️ ใส่ค่า Risk ที่ถูกต้อง', 'error'); return; }
+  savedRisk = v;
+  localStorage.setItem('riskTarget', v);
+  const ok = document.getElementById('rbOk');
+  ok.classList.add('show');
+  setTimeout(() => ok.classList.remove('show'), 2000);
+  calcAuto();
+}
+
+function getRiskTarget() {
+  const v = parseFloat(document.getElementById('rbRisk').value);
+  return v > 0 ? v : savedRisk;
+}
+
+// ════════════════════════════════════════
+// ASSET SPECS
+// ════════════════════════════════════════
+// displayMult: ระยะราคาดิบ × mult = หน่วยที่แสดงในช่อง SL Distance
+//   GC1/MGC1/XAUUSD : ×10  (นับทุก 0.1 เป็น 1 tick)
+//   NQ1/MNQ1        : ×4   (นับทุก 0.25 เป็น 1 tick)
+// dollarPerTick: $ ต่อ 1 tick ต่อ 1 contract
+// lotMode: 'fixed' = 1 contract เสมอ | 'variable' = คำนวณจาก Risk Target
+const ASSET_SPECS = {
+  'GC1'   : { lotMode:'fixed',    tickSize:0.10, dollarPerTick:10,  displayMult:10, label:'$10/tick' },
+  'MGC1'  : { lotMode:'variable', tickSize:0.10, dollarPerTick:1,   displayMult:10, label:'$1/tick'  },
+  'NQ1'   : { lotMode:'fixed',    tickSize:0.25, dollarPerTick:5,   displayMult:4,  label:'$5/tick'  },
+  'MNQ1'  : { lotMode:'variable', tickSize:0.25, dollarPerTick:0.5, displayMult:4,  label:'$0.5/tick'},
+  'XAUUSD': { lotMode:'fixed',    tickSize:0.10, dollarPerTick:10,  displayMult:10, label:'$10/tick' },
+};
+
+// $ ต่อ rawDist หนึ่งหน่วย ต่อ 1 contract = dollarPerTick / tickSize
+function dollarPerRaw(asset) {
+  const s = ASSET_SPECS[asset]; if (!s) return 0;
+  return s.dollarPerTick / s.tickSize;
+}
+
+// ════════════════════════════════════════
+// AUTO-CALCULATE (price → lot → risk → pnl)
+// ════════════════════════════════════════
+function calcAuto() {
+  const entry  = parseFloat(document.getElementById('fEntry').value);
+  const target = parseFloat(document.getElementById('fTarget').value);
+  const sl     = parseFloat(document.getElementById('fSL').value);
+  const result = document.getElementById('fResult').value;
+  const asset  = document.getElementById('fAsset').value;
+  const spec   = ASSET_SPECS[asset] || { lotMode:'fixed', tickSize:1, dollarPerTick:0, displayMult:1, label:'—' };
+  const riskTarget = getRiskTarget();
+
+  // ── Asset tag ──
+  const tagEl = document.getElementById('lotAssetTag');
+  if (tagEl) tagEl.textContent = asset;
+
+  // ── $/tick display ──
+  const dppEl = document.getElementById('fDPP');
+  if (dppEl) dppEl.value = spec.label;
+
+  // ── Position ──
+  let pos = '—';
+  if (!isNaN(entry) && !isNaN(sl)) pos = entry > sl ? 'Buy' : 'Sell';
+  const posEl = document.getElementById('fPosition');
+  posEl.value = pos;
+  posEl.style.color = pos === 'Buy' ? 'var(--green)' : pos === 'Sell' ? 'var(--red)' : '';
+
+  // ── Raw SL distance (ตัวเลขราคาจริง) ──
+  const rawDist = (!isNaN(entry) && !isNaN(sl)) ? Math.abs(entry - sl) : 0;
+
+  // ── SL Distance ที่แสดง = rawDist × displayMult (จำนวน ticks) ──
+  const slDisplay = rawDist > 0 ? rawDist * spec.displayMult : 0;
+  document.getElementById('fSLPoints').value = slDisplay > 0 ? slDisplay.toFixed(1) : '';
+
+  // ── Lot + Actual Risk ──
+  const dpr = dollarPerRaw(asset);  // $ per raw unit per contract
+  let lots = 0, actualRisk = 0;
+  if (rawDist > 0 && dpr > 0) {
+    if (spec.lotMode === 'variable') {
+      lots = Math.floor(riskTarget / (rawDist * dpr));
+      if (lots < 1) lots = 0;
+      actualRisk = lots * rawDist * dpr;
+    } else {
+      lots = 1;
+      actualRisk = rawDist * dpr;
+    }
+  }
+
+  const lotEl = document.getElementById('fLot');
+  if (lotEl) {
+    if (lots > 0) { lotEl.value = lots + (spec.lotMode==='variable' ? ' contracts' : ' contract'); lotEl.style.color = 'var(--cyan)'; }
+    else if (rawDist > 0 && spec.lotMode==='variable') { lotEl.value = '0 — SL กว้างเกินไป'; lotEl.style.color = 'var(--red)'; }
+    else { lotEl.value = '—'; lotEl.style.color = ''; }
+  }
+  const arEl = document.getElementById('fActualRisk');
+  if (arEl) { arEl.value = actualRisk > 0 ? actualRisk.toFixed(2) : ''; arEl.style.color = actualRisk > riskTarget*1.001 ? 'var(--red)' : 'var(--green)'; }
+
+  // ── Warning ──
+  const warnEl = document.getElementById('riskWarn');
+  const warnTxt = document.getElementById('riskWarnText');
+  if (warnEl && warnTxt) {
+    if (actualRisk > riskTarget * 1.001 && rawDist > 0) {
+      warnTxt.textContent = `Actual Risk $${actualRisk.toFixed(2)} เกิน Target $${riskTarget.toFixed(2)} — ลด Lot หรือขยับ SL`;
+      warnEl.classList.add('show');
+    } else if (lots === 0 && rawDist > 0 && spec.lotMode==='variable') {
+      warnTxt.textContent = `SL กว้างเกิน — 1 contract ต้องใช้ $${(rawDist*dpr).toFixed(2)} ซึ่งเกิน Risk Target $${riskTarget.toFixed(2)}`;
+      warnEl.classList.add('show');
+    } else {
+      warnEl.classList.remove('show');
+    }
+  }
+
+  // ── ตั้งค่า fRisk = actualRisk (ถ้ายังว่างอยู่) ──
+  // ถ้า user ยังไม่ได้แตะ fRisk ด้วยมือ ให้ fill อัตโนมัติ
+  const riskEl = document.getElementById('fRisk');
+  if (riskEl && !riskEl.dataset.userEdited) {
+    riskEl.value = actualRisk > 0 ? actualRisk.toFixed(2) : '';
+  }
+
+  // ── RR (ใช้ rawDist เสมอ) ──
+  let rr = 0;
+  if (!isNaN(entry) && !isNaN(target) && !isNaN(sl)) {
+    const rPts = Math.abs(entry - sl), rwPts = Math.abs(target - entry);
+    rr = rPts > 0 ? rwPts / rPts : 0;
+  }
+  document.getElementById('fRR').value = rr > 0 ? rr.toFixed(2) : '';
+
+  // ── PnL + TP$ (ใช้ fRisk ที่ user อาจแก้เองได้) ──
+  calcPnlFromRisk();
+}
+
+// แยก PnL calc เพื่อให้ user แก้ fRisk ได้โดยตรง
+function calcPnlFromRisk() {
+  const result = document.getElementById('fResult').value;
+  const risk   = parseFloat(document.getElementById('fRisk').value) || 0;
+  const rr     = parseFloat(document.getElementById('fRR').value) || 0;
+
+  let pnl = 0;
+  if      (result === 'TP')   pnl = risk * rr;
+  else if (result === 'Loss') pnl = -risk;
+
+  document.getElementById('fPnl').value    = pnl !== 0 ? pnl.toFixed(2) : '';
+  const tpDolEl = document.getElementById('fTPDollar');
+  if (tpDolEl) tpDolEl.value = result === 'TP' && pnl > 0 ? pnl.toFixed(2) : '';
+
+  // TP%
+  let tpPct = '—';
+  const port = portfolios.find(p => p.id === (document.getElementById('fPortfolio').value));
+  if (port && port.initBalance > 0 && result === 'TP' && pnl > 0)
+    tpPct = (pnl / port.initBalance * 100).toFixed(2) + '%';
+  document.getElementById('fTPPct').value = tpPct;
+}
+
+// ════════════════════════════════════════
+// SAVE TRADE
+// ════════════════════════════════════════
+async function saveTrade() {
+  const trade = collectForm();
+  if (!trade) return;
+  const portId = trade.portfolioId;
+  const port   = portfolios.find(p => p.id === portId);
+  if (!port) { toast('⚠️ กรุณาเลือกพอร์ต', 'error'); return; }
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+
+  if (!SCRIPT_URL) {
+    trade.id = Date.now();
+    if (!allTrades[portId]) allTrades[portId] = [];
+    allTrades[portId].unshift(trade);
+    localStorage.setItem('demoTrades', JSON.stringify(allTrades));
+    activePortId = portId;
+    savePorts(); renderTabs(); renderDash(portId);
+    toast('✅ บันทึกแล้ว (Demo)', 'success');
+    closeModal(); resetForm();
+    btn.disabled = false; btn.textContent = '💾 Save Trade';
+    return;
+  }
+
+  try {
+    const res  = await fetch(SCRIPT_URL, {
+      method:'POST', headers:{'Content-Type':'text/plain'},
+      body: JSON.stringify({ action:'addTrade', trade, sheet: port.name })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (!allTrades[portId]) allTrades[portId] = [];
+      allTrades[portId].unshift({...trade, id: data.id});
+      activePortId = portId; savePorts(); renderTabs(); renderDash(portId);
+      toast('✅ บันทึกลง Sheet "' + port.name + '" แล้ว!', 'success');
+      closeModal(); resetForm();
+    } else throw new Error(data.error);
+  } catch(e) {
+    toast('❌ บันทึกไม่ได้: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '💾 Save Trade';
+  }
+}
+
+function collectForm() {
+  const portId = document.getElementById('fPortfolio').value;
+  const date   = document.getElementById('fDate').value;
+  const result = document.getElementById('fResult').value;
+  const risk   = parseFloat(document.getElementById('fRisk').value) || 0;
+
+  if (!portId) { toast('⚠️ กรุณาเลือกพอร์ต', 'error'); return null; }
+  if (!date)   { toast('⚠️ กรุณาเลือกวันที่', 'error'); return null; }
+  if (risk <= 0 && result !== 'Miss') { toast('⚠️ กรุณาใส่ Entry / SL เพื่อคำนวณ Risk', 'error'); return null; }
+
+  const rr   = parseFloat(document.getElementById('fRR').value) || 0;
+  const pnl  = parseFloat(document.getElementById('fPnl').value) || 0;
+  const lotRaw = (document.getElementById('fLot').value||'').replace(/[^0-9]/g,'');
+  const lots = parseInt(lotRaw) || 0;
+
+  return {
+    portfolioId : portId,
+    asset       : document.getElementById('fAsset').value,
+    day         : document.getElementById('fDay').value,
+    session     : document.getElementById('fSession').value,
+    date        : date,
+    timeSlot    : document.getElementById('fTimeSlot').value,
+    duration    : parseInt(document.getElementById('fDuration').value) || 0,
+    timeEntry   : document.getElementById('fTimeEntry').value,
+    code        : document.getElementById('fCode').value,
+    cls         : document.getElementById('fClass').value,
+    mode        : document.getElementById('fMode').value,
+    model       : document.getElementById('fModel').value,
+    zone        : document.getElementById('fZone').value,
+    priceEntry  : parseFloat(document.getElementById('fEntry').value) || 0,
+    priceTarget : parseFloat(document.getElementById('fTarget').value) || 0,
+    priceSL     : parseFloat(document.getElementById('fSL').value) || 0,
+    result      : result,
+    risk        : risk,
+    lots        : lots,
+    riskTarget  : getRiskTarget(),
+    maxRR       : parseFloat(document.getElementById('fMaxRR').value) || 0,
+    pictureUrl  : document.getElementById('fPicture').value,
+    position    : document.getElementById('fPosition').value,
+    rr          : rr,
+    pnl         : pnl,
+    tip         : document.getElementById('fTip').value,
+    point       : (() => {
+      const e = parseFloat(document.getElementById('fEntry').value);
+      const t = parseFloat(document.getElementById('fTarget').value);
+      const s = parseFloat(document.getElementById('fSL').value);
+      return !isNaN(e)&&!isNaN(t)&&!isNaN(s) ? Math.abs(t-e).toFixed(2) : 0;
+    })(),
+    slPoints    : parseFloat(document.getElementById('fSLPoints').value) || 0,
+    tp          : parseFloat(document.getElementById('fTarget').value) || 0,
+    sl_price    : parseFloat(document.getElementById('fSL').value) || 0,
+    sl_dollar   : result === 'Loss' ? -risk : 0,
+    tp_dollar   : result === 'TP'   ? (risk * rr) : 0,
+    createdAt   : new Date().toISOString()
+  };
+}
+
+// ════════════════════════════════════════
+// RENDER DASHBOARD
+// ════════════════════════════════════════
+function renderDash(portId) {
+  const port   = portfolios.find(p => p.id === portId);
+  if (!port) return;
+  const allPortTrades = allTrades[portId] || [];
+  const trades = getFilteredTrades(allPortTrades);
+  const INIT   = port.initBalance || 10000;
+  const closed = trades.filter(t => t.result === 'TP' || t.result === 'Loss');
+  const wins   = closed.filter(t => t.result === 'TP');
+  const losses = closed.filter(t => t.result === 'Loss');
+  const pnlSum = closed.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const wr     = closed.length ? wins.length / closed.length * 100 : 0;
+  const bal    = INIT + pnlSum;
+  const ret    = INIT ? pnlSum / INIT * 100 : 0;
+  const gp     = wins.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
+  const gl     = Math.abs(losses.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0));
+  const pf     = gl ? gp / gl : gp > 0 ? 999 : 0;
+  const exp    = closed.length ? pnlSum / closed.length : 0;
+  const avgRR  = closed.length ? closed.reduce((s,t) => s + (parseFloat(t.rr)||0), 0) / closed.length : 0;
+
+  // Max Drawdown
+  let peak = INIT, maxDD = 0, run = INIT, sumDD = 0;
+  const sorted = [...closed].sort((a,b) => new Date(a.date||a.createdAt) - new Date(b.date||b.createdAt));
+  sorted.forEach(t => {
+    const p = parseFloat(t.pnl)||0;
+    run += p;
+    if (run > peak) peak = run;
+    const d = peak > 0 ? (peak - run) / peak * 100 : 0;
+    if (d > maxDD) maxDD = d;
+    if (p < 0) sumDD += Math.abs(p);
+  });
+
+  // Consecutive Losses
+  let conLoss = 0, maxConLoss = 0, conLossSum = 0, maxConLossSum = 0, curConLossSum = 0;
+  sorted.forEach(t => {
+    if (t.result === 'Loss') {
+      conLoss++;
+      curConLossSum += Math.abs(parseFloat(t.pnl)||0);
+      if (conLoss > maxConLoss) {
+        maxConLoss = conLoss;
+        maxConLossSum = curConLossSum;
+      }
+    } else {
+      conLoss = 0;
+      curConLossSum = 0;
+    }
+  });
+
+  const S = (id, v) => { const el = document.getElementById(id); if(el) el.textContent = v; };
+  const C = (id, c) => { const el = document.getElementById(id); if(el) el.className = 'stat-value ' + c; };
+
+  S('statBalance', '$' + bal.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}));
+  S('statBalanceSub', 'Initial: $' + INIT.toLocaleString('en'));
+  S('statPnl', (pnlSum >= 0 ? '+' : '') + '$' + pnlSum.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2}));
+  C('statPnl', pnlSum >= 0 ? 'green' : 'red');
+  S('statPnlSub', (ret >= 0 ? '+' : '') + ret.toFixed(2) + '% Return');
+  S('statWinRate', wr.toFixed(1) + '%');
+  S('statWinSub', closed.length + ' Closed Trades');
+  S('statDrawdown', '-' + maxDD.toFixed(2) + '%');
+  S('statPF', pf === 999 ? '∞' : pf.toFixed(2));
+  S('statRRR', '1:' + avgRR.toFixed(2));
+  S('statExpect', '$' + exp.toFixed(2));
+  S('statConLoss', maxConLoss.toString());
+  S('statSumConLoss', '-$' + maxConLossSum.toFixed(2));
+  S('statSumDD', '-$' + sumDD.toFixed(2));
+
+  updateEquityChart(closed, INIT);
+  updateMonthlyChart(closed);
+  updateWinRateBars(closed);
+}
+
+// ════════════════════════════════════════
+// CHARTS
+// ════════════════════════════════════════
+function initCharts() {
+  const cd = {
+    color:'#5a7a9a',
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#111820',borderColor:'#2d3f52',borderWidth:1,titleColor:'#dce8f5',bodyColor:'#7a9abb'}},
+    scales:{x:{grid:{color:'#1a2332'},ticks:{color:'#5a7a9a',font:{size:10}}},y:{grid:{color:'#1a2332'},ticks:{color:'#5a7a9a',font:{size:10}}}}
+  };
+  equityChart = new Chart(document.getElementById('equityChart'), {
+    type:'line', data:{labels:[],datasets:[{data:[],borderColor:'#3d9eff',borderWidth:2,fill:true,
+      backgroundColor:ctx=>{const g=ctx.chart.ctx.createLinearGradient(0,0,0,210);g.addColorStop(0,'rgba(61,158,255,0.2)');g.addColorStop(1,'rgba(61,158,255,0)');return g;},
+      tension:0.4,pointRadius:2,pointHoverRadius:5}]},
+    options:{...cd,responsive:true,maintainAspectRatio:false,
+      scales:{...cd.scales,y:{...cd.scales.y,ticks:{...cd.scales.y.ticks,callback:v=>'$'+v.toLocaleString('en')}}}}
+  });
+  monthlyChart = new Chart(document.getElementById('monthlyChart'), {
+    type:'bar', data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:5}]},
+    options:{...cd,responsive:true,maintainAspectRatio:false,
+      scales:{...cd.scales,y:{...cd.scales.y,ticks:{...cd.scales.y.ticks,callback:v=>'$'+v.toLocaleString('en')}}}}
+  });
+}
+
+function updateEquityChart(closed, INIT) {
+  const s = [...closed].sort((a,b) => new Date(a.date||a.createdAt) - new Date(b.date||b.createdAt));
+  let b = INIT;
+  const L = ['Start'], D = [b];
+  s.forEach((t,i) => { b += parseFloat(t.pnl)||0; L.push('#'+(i+1)); D.push(parseFloat(b.toFixed(2))); });
+  equityChart.data.labels = L;
+  equityChart.data.datasets[0].data = D;
+  equityChart.update();
+}
+
+function updateMonthlyChart(closed) {
+  const mn = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const mm = {};
+  closed.forEach(t => {
+    const d = new Date(t.date || t.createdAt);
+    const k = mn[d.getMonth()] + ' ' + d.getFullYear();
+    mm[k] = (mm[k] || 0) + (parseFloat(t.pnl)||0);
+  });
+  const L = Object.keys(mm), Dv = Object.values(mm);
+  monthlyChart.data.labels = L;
+  monthlyChart.data.datasets[0].data = Dv;
+  monthlyChart.data.datasets[0].backgroundColor = Dv.map(v => v >= 0 ? 'rgba(0,217,126,0.75)' : 'rgba(255,71,87,0.75)');
+  monthlyChart.update();
+}
+
+function updateWinRateBars(closed) {
+  [
+    {id:'wrAsset',   key:'asset',    colors:['#00e5ff','#00b8cc','#008c99','#006066','#003333']},
+    {id:'wrSession', key:'session',  colors:['#3d9eff','#2980e0','#1f60b0','#164590','#0d3070']},
+    {id:'wrCode',    key:'code',     colors:['#b084ff','#9060dd','#7040bb','#502099','#380077']},
+    {id:'wrMode',    key:'mode',     colors:['#00d97e','#00b868','#009050','#007038','#005020']},
+    {id:'wrClass',   key:'cls',      colors:['#ffd166','#ddaa44','#bb8822','#996600','#774400']},
+    {id:'wrModel',   key:'model',    colors:['#ff9a3c','#dd7822','#bb5600','#993400','#771200']},
+    {id:'wrTime',    key:'timeSlot', colors:['#00e5ff','#00b8cc','#008c99','#006066','#003333']},
+    {id:'wrDay',     key:'day',      colors:['#ff4757','#dd2533','#bb0011','#990000','#770000']},
+    {id:'wrZone',    key:'zone',     colors:['#ffa657','#dd8435','#bb6213','#994000','#771e00']},
+  ].forEach(g => {
+    const m = {};
+    closed.forEach(t => {
+      const k = t[g.key] || '?';
+      if (!m[k]) m[k] = {w:0, n:0};
+      m[k].n++;
+      if (t.result === 'TP') m[k].w++;
+    });
+    const s = Object.entries(m).sort((a,b) => b[1].n - a[1].n).slice(0,5);
+    document.getElementById(g.id).innerHTML = s.map(([lb,v], i) => {
+      const p = v.n ? Math.round(v.w/v.n*100) : 0;
+      return `<div class="bar-item">
+        <div class="bar-label" title="${lb}">${lb}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${p}%;background:${g.colors[i]||g.colors[0]}"></div></div>
+        <div class="bar-pct">${p}%</div>
+      </div>`;
+    }).join('') || '<div style="font-size:11px;color:var(--muted);text-align:center;padding:14px">ยังไม่มีข้อมูล</div>';
+  });
+}
+
+// ════════════════════════════════════════
+// PORTFOLIO CRUD
+// ════════════════════════════════════════
+function savePorts() {
+  localStorage.setItem('portfolios', JSON.stringify(portfolios));
+  localStorage.setItem('activePortId', activePortId);
+}
+
+function addPortfolio() {
+  const name = document.getElementById('pmNewName').value.trim();
+  const bal  = parseFloat(document.getElementById('pmNewBalance').value) || 10000;
+  if (!name) { toast('⚠️ กรุณาใส่ชื่อพอร์ต', 'error'); return; }
+  if (portfolios.find(p => p.name === name)) { toast('⚠️ ชื่อพอร์ตซ้ำ', 'error'); return; }
+  const id = 'p' + Date.now();
+  portfolios.push({ id, name, color: pmColor, initBalance: bal });
+  savePorts(); renderTabs(); renderPmList();
+  document.getElementById('pmNewName').value = '';
+  document.getElementById('pmNewBalance').value = '';
+  toast('✅ สร้างพอร์ต "' + name + '" แล้ว', 'success');
+}
+
+function deletePortfolio(id) {
+  const p = portfolios.find(x => x.id === id);
+  if (!confirm('ลบพอร์ต "' + p.name + '"?')) return;
+  portfolios = portfolios.filter(x => x.id !== id);
+  delete allTrades[id];
+  localStorage.setItem('demoTrades', JSON.stringify(allTrades));
+  if (activePortId === id) activePortId = portfolios[0]?.id || '';
+  savePorts(); renderTabs(); renderPmList();
+  portfolios.length === 0 ? showEmpty() : loadPort(activePortId);
+  toast('🗑 ลบพอร์ตแล้ว', 'success');
+}
+
+let editPortId = null, editColor = null;
+function openEditPort(id) {
+  const p = portfolios.find(x => x.id === id);
+  if (!p) return;
+  editPortId = id; editColor = p.color;
+  const colorDots = PALETTE.map(c => `<div class="cp-dot${c===p.color?' sel':''}" style="background:${c}" onclick="selectEditColor('${c}',this)"></div>`).join('');
+  const panel = document.getElementById('pmEditPanel');
+  panel.innerHTML = `<div class="pm-edit-panel">
+    <div class="pm-edit-title">✏️ แก้ไขพอร์ต: ${p.name}</div>
+    <div class="pm-edit-grid">
+      <input type="text" id="editPortName" value="${p.name}" maxlength="30">
+      <input type="number" id="editPortBalance" value="${p.initBalance}" min="0">
+    </div>
+    <div style="margin-bottom:10px;">
+      <div style="font-size:10px;color:var(--muted2);margin-bottom:6px;text-transform:uppercase;letter-spacing:1px;">สี</div>
+      <div class="color-picker-row" id="editColorPicker">${colorDots}</div>
+    </div>
+    <div class="pm-edit-actions">
+      <button class="pm-edit-save" onclick="saveEditPort()">✅ บันทึก</button>
+      <button class="pm-edit-cancel" onclick="cancelEditPort()">ยกเลิก</button>
+    </div>
+  </div>`;
+  panel.style.display = 'block';
+}
+
+function selectEditColor(c, el) {
+  editColor = c;
+  document.querySelectorAll('#editColorPicker .cp-dot').forEach(d => d.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+async function saveEditPort() {
+  const name = document.getElementById('editPortName').value.trim();
+  const bal  = parseFloat(document.getElementById('editPortBalance').value) || 0;
+  if (!name) { toast('⚠️ กรุณาใส่ชื่อพอร์ต', 'error'); return; }
+  if (portfolios.find(p => p.name === name && p.id !== editPortId)) { toast('⚠️ ชื่อพอร์ตซ้ำ', 'error'); return; }
+  const p = portfolios.find(x => x.id === editPortId);
+  if (!p) return;
+  const oldName = p.name;
+  if (oldName !== name && SCRIPT_URL) {
+    try {
+      const res = await fetch(SCRIPT_URL, { method:'POST', headers:{'Content-Type':'text/plain'},
+        body: JSON.stringify({ action:'renameSheet', oldName, newName: name }) });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Rename ไม่สำเร็จ');
+    } catch(e) { toast('❌ Rename Sheet ไม่ได้: ' + e.message, 'error'); return; }
+  }
+  p.name = name; p.initBalance = bal; p.color = editColor;
+  savePorts(); renderTabs(); renderPmList();
+  if (activePortId === editPortId) { document.getElementById('portNameLabel').textContent = name; document.getElementById('portColorDot').style.background = editColor; renderDash(editPortId); }
+  cancelEditPort();
+  toast('✅ อัปเดตพอร์ตแล้ว', 'success');
+}
+
+function cancelEditPort() { editPortId = null; editColor = null; const p = document.getElementById('pmEditPanel'); p.innerHTML=''; p.style.display='none'; }
+function switchPort(id) { activePortId = id; localStorage.setItem('activePortId', id); activeFilters = {}; updateFilterUI(); renderTabs(); loadPort(id); }
+
+// ════════════════════════════════════════
+// LOAD PORT DATA
+// ════════════════════════════════════════
+async function loadPort(portId) {
+  const port = portfolios.find(p => p.id === portId);
+  if (!port) { showEmpty(); return; }
+  showDash();
+  document.getElementById('portNameLabel').textContent = port.name;
+  document.getElementById('portColorDot').style.background = port.color;
+
+  if (SCRIPT_URL) {
+    showLoading('กำลังโหลดพอร์ต "' + port.name + '"...');
+    try {
+      const res  = await fetch(`${SCRIPT_URL}?action=getTrades&sheet=${encodeURIComponent(port.name)}`);
+      const data = await res.json();
+      if (data.success) { allTrades[portId] = data.trades || []; setConn(true); }
+      else throw new Error(data.error);
+    } catch(e) { setConn(false); toast('❌ โหลดไม่ได้: ' + e.message, 'error'); if (!allTrades[portId]) allTrades[portId] = genDemo(); }
+    finally { hideLoading(); }
+  } else {
+    setConn(false);
+    if (!allTrades[portId]) { allTrades[portId] = genDemo(); localStorage.setItem('demoTrades', JSON.stringify(allTrades)); }
+  }
+  renderDash(portId);
+}
+
+function saveSettings() {
+  SCRIPT_URL = document.getElementById('sScriptUrl').value.trim();
+  localStorage.setItem('scriptUrl', SCRIPT_URL);
+  toast('✅ บันทึก Settings แล้ว', 'success');
+  if (activePortId) loadPort(activePortId);
+}
+
+// ════════════════════════════════════════
+// FILTERS
+// ════════════════════════════════════════
+function toggleFilters() {
+  filtersOpen = !filtersOpen;
+  const grid = document.getElementById('filterGrid');
+  const btn  = document.getElementById('filterToggleBtn');
+  const top  = document.getElementById('filterBarTop');
+  grid.classList.toggle('show', filtersOpen);
+  btn.classList.toggle('active', filtersOpen);
+  btn.textContent = filtersOpen ? '▲ Filter' : '▼ Filter';
+  top.classList.toggle('open', filtersOpen);
+}
+
+function getFilteredTrades(trades) {
+  return trades.filter(t => {
+    if (activeFilters.asset    && t.asset     !== activeFilters.asset)    return false;
+    if (activeFilters.result   && t.result   !== activeFilters.result)   return false;
+    if (activeFilters.day      && t.day       !== activeFilters.day)      return false;
+    if (activeFilters.timeSlot && t.timeSlot  !== activeFilters.timeSlot) return false;
+    if (activeFilters.code     && t.code      !== activeFilters.code)     return false;
+    if (activeFilters.position && t.position  !== activeFilters.position) return false;
+    if (activeFilters.session  && t.session   !== activeFilters.session)  return false;
+    if (activeFilters.mode     && t.mode      !== activeFilters.mode)     return false;
+    if (activeFilters.cls      && t.cls       !== activeFilters.cls)      return false;
+    if (activeFilters.model    && t.model     !== activeFilters.model)    return false;
+    if (activeFilters.zone     && t.zone      !== activeFilters.zone)     return false;
+    if (activeFilters.duration && (parseInt(t.duration)||0) > parseInt(activeFilters.duration)) return false;
+    return true;
+  });
+}
+
+function applyFilters() {
+  activeFilters = {};
+  const map = [
+    {id:'ffAsset',    key:'asset'},
+    {id:'ffResult',   key:'result'},
+    {id:'ffDay',      key:'day'},
+    {id:'ffTime',     key:'timeSlot'},
+    {id:'ffCode',     key:'code'},
+    {id:'ffDuration', key:'duration'},
+    {id:'ffPosition', key:'position'},
+    {id:'ffSession',  key:'session'},
+    {id:'ffMode',     key:'mode'},
+    {id:'ffClass',    key:'cls'},
+    {id:'ffModel',    key:'model'},
+    {id:'ffZone',     key:'zone'},
+  ];
+  map.forEach(f => {
+    const el = document.getElementById(f.id);
+    if (el && el.value) activeFilters[f.key] = el.value;
+  });
+  updateFilterUI();
+  if (activePortId) renderDash(activePortId);
+}
+
+function clearFilters() {
+  activeFilters = {};
+  ['ffAsset','ffResult','ffDay','ffTime','ffCode','ffDuration','ffPosition','ffSession','ffMode','ffClass','ffModel','ffZone']
+    .forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  updateFilterUI();
+  if (activePortId) renderDash(activePortId);
+}
+
+function updateFilterUI() {
+  const count = Object.keys(activeFilters).length;
+  const badge = document.getElementById('filterCount');
+  const clearBtn = document.getElementById('filterClearBtn');
+  const summary = document.getElementById('filterSummary');
+  const toggleBtn = document.getElementById('filterToggleBtn');
+
+  badge.style.display = count > 0 ? 'inline-flex' : 'none';
+  badge.textContent = count;
+  clearBtn.style.display = count > 0 ? 'block' : 'none';
+  toggleBtn.classList.toggle('active', filtersOpen || count > 0);
+
+  const labelMap = {asset:'Asset', result:'Result', day:'Day', timeSlot:'Time', code:'Code', duration:'Duration ≤', position:'Position', session:'Session', mode:'Mode', cls:'Class', model:'Model', zone:'Zone'};
+  if (count > 0) {
+    summary.style.display = 'flex';
+    summary.innerHTML = Object.entries(activeFilters).map(([k,v]) =>
+      `<div class="filter-tag">${labelMap[k]||k}: <strong>${v}</strong><button onclick="removeFilter('${k}')">✕</button></div>`
+    ).join('');
+  } else {
+    summary.style.display = 'none';
+    summary.innerHTML = '';
+  }
+}
+
+function removeFilter(key) {
+  const idMap = {asset:'ffAsset', result:'ffResult', day:'ffDay', timeSlot:'ffTime', code:'ffCode', duration:'ffDuration', position:'ffPosition', session:'ffSession', mode:'ffMode', cls:'ffClass', model:'ffModel', zone:'ffZone'};
+  const el = document.getElementById(idMap[key]);
+  if (el) el.value = '';
+  delete activeFilters[key];
+  updateFilterUI();
+  if (activePortId) renderDash(activePortId);
+}
+
+// ════════════════════════════════════════
+// RENDER TABS
+// ════════════════════════════════════════
+function renderTabs() {
+  const bar = document.getElementById('portBar');
+  bar.innerHTML = '';
+  portfolios.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'port-tab' + (p.id === activePortId ? ' active' : '');
+    btn.style.color = p.id === activePortId ? p.color : '';
+    btn.innerHTML = `<span class="tab-dot" style="background:${p.color};${p.id===activePortId?'box-shadow:0 0 5px '+p.color:''}"></span>${p.name}`;
+    btn.onclick = () => switchPort(p.id);
+    bar.appendChild(btn);
+  });
+  const addBtn = document.createElement('button');
+  addBtn.className = 'port-tab-add';
+  addBtn.textContent = '＋'; addBtn.title = 'จัดการพอร์ต';
+  addBtn.onclick = openPm;
+  bar.appendChild(addBtn);
+  const sel = document.getElementById('fPortfolio');
+  if (sel) {
+    const prev = sel.value;
+    sel.innerHTML = portfolios.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    if (portfolios.find(p => p.id === prev)) sel.value = prev;
+    else if (activePortId) sel.value = activePortId;
+  }
+}
+
+function renderPmList() {
+  document.getElementById('pmList').innerHTML = portfolios.length === 0
+    ? '<div style="font-size:12px;color:var(--muted);text-align:center;padding:16px">ยังไม่มีพอร์ต</div>'
+    : portfolios.map(p => {
+        const cnt = (allTrades[p.id]||[]).length;
+        return `<div class="pm-item">
+          <div class="pm-color" style="background:${p.color}"></div>
+          <div class="pm-name">${p.name}</div>
+          <div class="pm-meta">${cnt} trades · $${p.initBalance.toLocaleString('en')}</div>
+          <button class="pm-edit-btn" onclick="openEditPort('${p.id}')">✏️</button>
+          <button class="pm-del" onclick="deletePortfolio('${p.id}')">✕</button>
+        </div>`;
+      }).join('');
+}
+
+function buildColorPicker() {
+  document.getElementById('colorPicker').innerHTML = PALETTE.map((c,i) =>
+    `<div class="cp-dot${i===0?' sel':''}" style="background:${c}" onclick="selectColor('${c}',this)"></div>`
+  ).join('');
+}
+function selectColor(c, el) { pmColor = c; document.querySelectorAll('#colorPicker .cp-dot').forEach(d => d.classList.remove('sel')); el.classList.add('sel'); }
+
+// ════════════════════════════════════════
+// DEMO DATA
+// ════════════════════════════════════════
+function genDemo() {
+  const days=['Mon','Tue','Wed','Thu','Fri'];
+  const sess=['Out','AS','LO','NY'];
+  const codes=['Code1','Code2','Nochi'];
+  const modes=['Be','CHe','BE>B','CHe>B','BE>CHe','CHe>BE','BE>BE','CHe>CHe'];
+  const models=['RBR','RBD','DBD','DBR','R','D'];
+  const zones=['Bos1','Bos1 ย้าย','Bos สุดท้าย','ไม่มี'];
+  const classes=['A+','A','B'];
+  const slots=['05:00-07:00','07:00-09:00','09:00-11:00','11:00-14:00','14:00-16:00','16:00-18:00','19:00-21:00','21:00-23:00'];
+  const res=['TP','TP','TP','Loss','Loss','Miss'];
+  const assets=['GC1','MGC1','NQ1','MNQ1','XAUUSD'];
+  const assetBase={ GC1:3300, MGC1:3300, NQ1:19500, MNQ1:19500, XAUUSD:3300 };
+  const now = new Date();
+  return Array.from({length:40},(_,i)=>{
+    const r    = res[~~(Math.random()*res.length)];
+    const asset= assets[~~(Math.random()*assets.length)];
+    const base = assetBase[asset];
+    const entry   = base + (Math.random()-0.5)*100;
+    const slDist  = (Math.random()*5+2);
+    const isBuy   = Math.random() > 0.5;
+    const sl      = isBuy ? entry - slDist : entry + slDist;
+    const rrVal   = [1,1.5,2,2.5,3][~~(Math.random()*5)];
+    const target  = isBuy ? entry + slDist*rrVal : entry - slDist*rrVal;
+    const rpp  = dollarPerRaw(asset);
+    const risk = slDist * rpp;
+    const rr      = rrVal;
+    const d       = new Date(now - i*2*86400000);
+    const dateStr = d.toISOString().split('T')[0];
+    const pnl     = r==='TP' ? risk*rr : r==='Loss' ? -risk : 0;
+    return {
+      id: i, asset, day: days[d.getDay()%5], session: sess[~~(Math.random()*4)],
+      date: dateStr, timeSlot: slots[~~(Math.random()*slots.length)],
+      duration: ~~(Math.random()*60)+5, timeEntry: '09:00',
+      code: codes[~~(Math.random()*3)], cls: classes[~~(Math.random()*3)],
+      mode: modes[~~(Math.random()*modes.length)], model: models[~~(Math.random()*6)],
+      zone: zones[~~(Math.random()*4)],
+      priceEntry: parseFloat(entry.toFixed(2)),
+      priceTarget: parseFloat(target.toFixed(2)),
+      priceSL: parseFloat(sl.toFixed(2)),
+      result: r, risk: parseFloat(risk.toFixed(2)), rr, pnl: parseFloat(pnl.toFixed(2)),
+      maxRR: rr+Math.random(), position: isBuy?'Buy':'Sell',
+      slPoints: parseFloat(slDist.toFixed(2)),
+      tip: '', pictureUrl: ''
+    };
+  });
+}
+
+// ════════════════════════════════════════
+// UI HELPERS
+// ════════════════════════════════════════
+function showEmpty() { document.getElementById('noPortMsg').style.display='flex'; document.getElementById('dashMain').style.display='none'; }
+function showDash()  { document.getElementById('noPortMsg').style.display='none'; document.getElementById('dashMain').style.display='block'; }
+function setConn(ok) {
+  const dot=document.getElementById('connDot'), txt=document.getElementById('connText');
+  dot.className='conn-dot'+(ok?' connected':SCRIPT_URL?' error':'');
+  txt.textContent=ok?'เชื่อมต่อแล้ว':SCRIPT_URL?'เชื่อมต่อไม่ได้':'Demo Mode';
+}
+function showLoading(m='Loading...') { document.getElementById('loadingText').textContent=m; document.getElementById('loadingOverlay').classList.add('show'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('show'); }
+function toast(msg, type='success') { const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show '+type; setTimeout(()=>t.className='toast',3200); }
+
+function setTodayDate() {
+  const n = new Date();
+  const pad = v => String(v).padStart(2,'0');
+  const dateStr = n.getFullYear()+'-'+pad(n.getMonth()+1)+'-'+pad(n.getDate());
+  const timeStr = pad(n.getHours())+':'+pad(n.getMinutes());
+  const dayEl = document.getElementById('fDay');
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  if (dayEl) {
+    const d = days[n.getDay()];
+    if ([...dayEl.options].find(o => o.value===d)) dayEl.value = d;
+  }
+  const dateEl = document.getElementById('fDate');
+  if (dateEl) dateEl.value = dateStr;
+  const timeEl = document.getElementById('fTimeEntry');
+  if (timeEl) timeEl.value = timeStr;
+}
+
+function resetForm() {
+  ['fEntry','fTarget','fSL','fRisk','fRR','fPnl','fTPPct','fTPDollar','fActualRisk',
+   'fMaxRR','fPicture','fTip','fDuration','fSLPoints','fLot','fDPP'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) { el.value = ''; el.style.color = ''; delete el.dataset.userEdited; }
+  });
+  ['fDay','fSession','fTimeSlot','fCode','fClass','fMode','fModel','fZone','fResult','fAsset'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.selectedIndex=0;
+  });
+  const posEl = document.getElementById('fPosition');
+  if (posEl) { posEl.value=''; posEl.style.color=''; }
+  const warnEl = document.getElementById('riskWarn');
+  if (warnEl) warnEl.classList.remove('show');
+  // restore risk bar to saved value
+  const rbEl = document.getElementById('rbRisk');
+  if (rbEl) rbEl.value = savedRisk;
+  setTodayDate();
+}
+
+function openModal() {
+  renderTabs();
+  const s = document.getElementById('fPortfolio');
+  if (s && activePortId) s.value = activePortId;
+  document.getElementById('modalOverlay').classList.add('show');
+  setTodayDate();
+  initRiskBar();
+}
+function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
+function switchTab(tab) {
+  document.querySelectorAll('.modal-tab').forEach((b,i) => b.classList.toggle('active', (tab==='log'&&i===0)||(tab==='settings'&&i===1)));
+  document.getElementById('logSection').classList.toggle('show', tab==='log');
+  document.getElementById('settingsSection').classList.toggle('show', tab==='settings');
+}
+function openPm()  { renderPmList(); buildColorPicker(); document.getElementById('pmOverlay').classList.add('show'); }
+function closePm() { document.getElementById('pmOverlay').classList.remove('show'); }
+</script>
+</body>
+</html>
