@@ -1358,39 +1358,40 @@ async function saveTrade() {
   const port   = portfolios.find(p => p.id === portId);
   if (!port) { toast('⚠️ กรุณาเลือกพอร์ต', 'error'); return; }
 
-  const btn = document.getElementById('saveBtn');
-  btn.disabled = true; btn.textContent = '⏳ กำลังบันทึก...';
+  // ✅ 1) บันทึก local ทันที + ปิด modal เลย
+  const tempId = 'temp_' + Date.now();
+  const localTrade = { ...trade, id: tempId, _syncing: true };
+  if (!allTrades[portId]) allTrades[portId] = [];
+  allTrades[portId].unshift(localTrade);
+  activePortId = portId;
+  savePorts(); renderTabs(); renderDash(portId);
+  toast('✅ บันทึกแล้ว — กำลังซิงค์ Sheet...', 'success');
+  closeModal(); resetForm();
 
-  if (!SCRIPT_URL) {
-    trade.id = Date.now();
-    if (!allTrades[portId]) allTrades[portId] = [];
-    allTrades[portId].unshift(trade);
-    localStorage.setItem('demoTrades', JSON.stringify(allTrades));
-    activePortId = portId;
-    savePorts(); renderTabs(); renderDash(portId);
-    toast('✅ บันทึกแล้ว (Demo)', 'success');
-    closeModal(); resetForm();
-    btn.disabled = false; btn.textContent = '💾 Save Trade';
-    return;
-  }
+  if (!SCRIPT_URL) return; // Demo mode จบแค่นี้
 
+  // ✅ 2) ส่ง Sheet ใน background ไม่ block UI
   try {
     const res  = await fetch(SCRIPT_URL, {
-      method:'POST', headers:{'Content-Type':'text/plain'},
-      body: JSON.stringify({ action:'addTrade', trade, sheet: port.name })
+      method: 'POST', headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'addTrade', trade, sheet: port.name })
     });
     const data = await res.json();
     if (data.success) {
-      if (!allTrades[portId]) allTrades[portId] = [];
-      allTrades[portId].unshift({...trade, id: data.id});
-      activePortId = portId; savePorts(); renderTabs(); renderDash(portId);
-      toast('✅ บันทึกลง Sheet "' + port.name + '" แล้ว!', 'success');
-      closeModal(); resetForm();
+      // อัพเดต id จาก temp → id จริงจาก Sheet
+      const idx = allTrades[portId].findIndex(t => t.id === tempId);
+      if (idx !== -1) {
+        allTrades[portId][idx] = { ...localTrade, id: data.id, _syncing: false };
+        savePorts();
+      }
+      toast('☁️ ซิงค์ Sheet เรียบร้อย', 'success');
     } else throw new Error(data.error);
   } catch(e) {
-    toast('❌ บันทึกไม่ได้: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false; btn.textContent = '💾 Save Trade';
+    // ซิงค์ไม่ได้ แต่ข้อมูล local ยังอยู่ครบ
+    toast('⚠️ ซิงค์ Sheet ไม่ได้: ' + e.message, 'error');
+    // ถ้าอยากให้ mark ว่ายังไม่ sync ก็ทำได้
+    const idx = allTrades[portId].findIndex(t => t.id === tempId);
+    if (idx !== -1) allTrades[portId][idx]._syncing = false, savePorts();
   }
 }
 
