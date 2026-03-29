@@ -305,6 +305,138 @@ input[readonly]{opacity:0.6;cursor:default !important;}
 .filter-tag button{background:none;border:none;color:var(--blue);cursor:pointer;font-size:12px;padding:0;line-height:1;opacity:0.7;}
 .filter-tag button:hover{opacity:1;}
 
+/* ── TOPSTEP DASHBOARD EXTRAS ── */
+
+/* ── TS Section Label ── */
+.ts-section-label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ts-section-label::after{content:'';flex:1;height:1px;background:var(--border2);}
+
+/* ── Topstep Overview Wrapper ── */
+.ts-overview-wrap{margin-bottom:0;}
+
+/* ── Firm Card ── */
+.ts-firm-card{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.ts-firm-left{display:flex;align-items:center;gap:14px;}
+.ts-firm-icon{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#3d9eff,#00d97e);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.ts-firm-name{font-size:16px;font-weight:800;letter-spacing:-0.3px;}
+.ts-firm-name span{color:var(--blue);}
+.ts-firm-sub{font-size:11px;color:var(--muted);margin-top:2px;font-family:'Space Mono',monospace;}
+.ts-firm-badges{display:flex;gap:8px;}
+.ts-badge{font-size:11px;font-weight:700;padding:5px 12px;border-radius:20px;display:flex;align-items:center;gap:5px;}
+.ts-badge-blue{background:rgba(61,158,255,0.12);color:var(--blue);border:1px solid rgba(61,158,255,0.3);}
+.ts-badge-green{background:rgba(0,217,126,0.12);color:var(--green);border:1px solid rgba(0,217,126,0.3);}
+.ts-badge-red{background:rgba(255,71,87,0.12);color:var(--red);border:1px solid rgba(255,71,87,0.3);}
+
+/* ── Mini 4-card grid ── */
+.ts-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:10px;}
+.ts-mini-card{background:var(--card2);border:1px solid var(--border2);border-radius:10px;padding:14px 16px;position:relative;overflow:hidden;}
+.ts-mini-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ts-mini-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase;}
+.ts-mini-icon{font-size:14px;}
+.ts-mini-val{font-size:22px;font-weight:800;letter-spacing:-0.8px;line-height:1;margin-bottom:4px;font-family:'Outfit',sans-serif;}
+.ts-mini-val.green{color:var(--green);}
+.ts-mini-val.red{color:var(--red);}
+.ts-mini-val.orange{color:var(--orange);}
+.ts-mini-val.blue{color:var(--blue);}
+.ts-mini-sub{font-size:10px;color:var(--muted);margin-bottom:10px;}
+.ts-mini-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;}
+.ts-mini-bar-fill{height:100%;border-radius:2px;transition:width 0.8s ease;}
+.ts-mini-bar-fill.green{background:var(--green);}
+.ts-mini-bar-fill.red{background:var(--red);}
+.ts-mini-bar-fill.orange{background:var(--orange);}
+.ts-mini-bar-fill.blue{background:var(--blue);}
+
+/* ── Bottom Row: Bar + Ratios ── */
+.ts-bottom-row{display:grid;grid-template-columns:1.4fr 1fr;gap:10px;margin-bottom:14px;}
+.ts-bar-card,.ts-ratios-card{background:var(--card2);border:1px solid var(--border2);border-radius:12px;padding:16px;}
+.ts-bar-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.ts-bar-title{font-size:10px;font-weight:800;color:var(--muted2);letter-spacing:1.2px;text-transform:uppercase;}
+.ts-bar-legend{display:flex;gap:12px;font-size:10px;color:var(--muted);}
+.ts-bar-legend span{display:flex;align-items:center;gap:5px;}
+.ts-bar-legend i{width:9px;height:9px;border-radius:2px;display:inline-block;font-style:normal;}
+
+/* ── Donut Grid ── */
+.ts-donut-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.ts-donut-cell{display:flex;flex-direction:column;align-items:center;gap:7px;}
+.ts-donut-wrap{position:relative;width:80px;height:80px;}
+.ts-donut-wrap canvas{width:80px !important;height:80px !important;}
+.ts-donut-center{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;font-family:'Outfit',sans-serif;color:var(--text);}
+.ts-donut-label{font-size:9px;font-weight:700;color:var(--muted);letter-spacing:0.8px;text-transform:uppercase;text-align:center;}
+
+/* ── Trading Calendar ── */
+.ts-cal-wrap{background:var(--card2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.ts-cal-topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--border2);}
+.ts-cal-title{font-size:11px;font-weight:700;color:var(--muted2);text-transform:uppercase;letter-spacing:1px;display:flex;align-items:center;gap:7px;}
+.ts-cal-nav{display:flex;align-items:center;gap:10px;}
+.ts-cal-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;}
+.ts-cal-btn:hover{border-color:var(--blue);color:var(--blue);}
+.ts-cal-month{font-size:13px;font-weight:700;color:var(--text);min-width:120px;text-align:center;}
+.ts-cal-grid-header{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--border2);}
+.ts-cal-grid-header div{text-align:center;font-size:10px;font-weight:700;color:var(--muted);padding:8px 0;text-transform:uppercase;letter-spacing:0.5px;}
+.ts-cal-grid-body{display:grid;grid-template-columns:repeat(7,1fr);}
+.ts-cal-cell{border-right:1px solid var(--border);border-bottom:1px solid var(--border);min-height:96px;padding:8px 10px;position:relative;cursor:default;transition:background 0.15s;}
+.ts-cal-cell:nth-child(7n){border-right:none;}
+.ts-cal-cell.has-data{cursor:pointer;}
+.ts-cal-cell.has-data:hover{background:rgba(255,255,255,0.03);}
+.ts-cal-cell.is-today{outline:2px solid var(--blue);outline-offset:-1px;z-index:1;}
+.ts-cal-cell.other-month{opacity:0.25;}
+.ts-cal-cell.profit-day{background:rgba(0,217,126,0.05);}
+.ts-cal-cell.loss-day{background:rgba(255,71,87,0.05);}
+.ts-cal-day-num{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:6px;}
+.ts-cal-pnl{font-size:12px;font-weight:800;font-family:'Space Mono',monospace;line-height:1.3;}
+.ts-cal-pnl.pos{color:var(--green);}
+.ts-cal-pnl.neg{color:var(--red);}
+.ts-cal-cnt{font-size:9px;color:var(--muted);margin-top:2px;}
+.ts-cal-legend{display:flex;gap:20px;justify-content:center;padding:12px 0;border-top:1px solid var(--border2);}
+.ts-cal-legend span{display:flex;align-items:center;gap:6px;font-size:10px;color:var(--muted);}
+.ts-leg-dot{width:9px;height:9px;border-radius:50%;display:inline-block;}
+
+/* ── Order History ── */
+.ts-orders-wrap{background:var(--card2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:14px;}
+.ts-orders-head-label{font-size:10px;font-weight:800;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:14px 20px 0;display:flex;align-items:center;gap:6px;}
+.ts-orders-toolbar{display:flex;align-items:center;justify-content:space-between;padding:10px 20px 12px;border-bottom:1px solid var(--border2);}
+.ts-orders-left{display:flex;align-items:center;gap:10px;}
+.ts-orders-tab{font-size:13px;font-weight:700;color:var(--text);}
+.ts-orders-count{font-size:11px;color:var(--muted);font-family:'Space Mono',monospace;}
+.ts-orders-right{display:flex;gap:6px;}
+.ts-sort-btn{padding:5px 13px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--muted);font-size:11px;font-weight:700;cursor:pointer;transition:all 0.15s;font-family:'Outfit',sans-serif;display:flex;align-items:center;gap:5px;}
+.ts-sort-btn:hover{border-color:var(--blue);color:var(--blue);}
+.ts-sort-btn.active{background:rgba(61,158,255,0.15);border-color:var(--blue);color:var(--blue);}
+.ts-orders-table-wrap{overflow-x:auto;}
+table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
+.ts-tbl thead tr{background:var(--card3);border-bottom:1px solid var(--border2);}
+.ts-tbl th{padding:9px 12px;text-align:left;font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;white-space:nowrap;}
+.ts-tbl td{padding:10px 12px;border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle;}
+.ts-tbl tr:last-child td{border-bottom:none;}
+.ts-tbl tr:hover td{background:rgba(255,255,255,0.018);}
+.ts-td-num{color:var(--muted);font-family:'Space Mono',monospace;font-size:10px;}
+.ts-td-date{color:var(--text);font-family:'Space Mono',monospace;font-size:11px;font-weight:600;}
+.ts-td-asset{font-weight:800;color:var(--cyan);font-size:12px;}
+.ts-pos-pill{display:inline-block;padding:3px 9px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.3px;}
+.ts-pos-buy{background:rgba(0,217,126,0.15);color:var(--green);}
+.ts-pos-sell{background:rgba(255,71,87,0.15);color:var(--red);}
+.ts-sess-pill{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;}
+.ts-sess-AS{background:rgba(176,132,255,0.15);color:var(--purple);}
+.ts-sess-LO{background:rgba(61,158,255,0.15);color:var(--blue);}
+.ts-sess-NY{background:rgba(0,217,126,0.15);color:var(--green);}
+.ts-sess-Out{background:rgba(90,122,154,0.15);color:var(--muted2);}
+.ts-result-tp{color:var(--green);font-weight:700;font-size:11px;}
+.ts-result-loss{color:var(--red);font-weight:700;font-size:11px;}
+.ts-result-miss{color:var(--muted);font-weight:600;font-size:11px;}
+.ts-pnl-pos{color:var(--green);font-weight:800;font-family:'Space Mono',monospace;}
+.ts-pnl-neg{color:var(--red);font-weight:800;font-family:'Space Mono',monospace;}
+.ts-pnl-zero{color:var(--muted);font-family:'Space Mono',monospace;}
+.ts-rr{color:var(--orange);font-family:'Space Mono',monospace;font-size:11px;}
+.ts-entry-pill{display:inline-flex;align-items:center;gap:5px;padding:3px 8px;border-radius:5px;background:var(--bg);border:1px solid var(--border2);font-family:'Space Mono',monospace;font-size:10px;}
+.ts-entry-pnl{color:var(--green);font-weight:700;}
+.ts-orders-footer{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;border-top:1px solid var(--border2);background:var(--card3);}
+.ts-pag-info{font-size:11px;color:var(--muted);}
+.ts-pag-btns{display:flex;gap:4px;align-items:center;}
+.ts-pag-btn{min-width:30px;height:30px;border-radius:6px;border:1px solid var(--border2);background:transparent;color:var(--muted);cursor:pointer;font-size:12px;font-weight:700;transition:all 0.15s;display:flex;align-items:center;justify-content:center;padding:0 8px;font-family:'Outfit',sans-serif;}
+.ts-pag-btn:hover:not(:disabled){border-color:var(--blue);color:var(--blue);background:rgba(61,158,255,0.1);}
+.ts-pag-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+.ts-pag-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
 /* ── RESPONSIVE ── */
 @media(max-width:900px){
   .stats-row,.stats-row2,.stats-row3{grid-template-columns:repeat(2,1fr);}
@@ -537,6 +669,169 @@ input[readonly]{opacity:0.6;cursor:default !important;}
     <div class="winrate-card"><div class="winrate-title">By Mitigated Zone</div><div id="wrZone"></div></div>
   </div>
 
+  <!-- ═══ TOPSTEP OVERVIEW ═══ -->
+  <div class="ts-section-label">🏆 TOPSTEP OVERVIEW</div>
+  <div class="ts-overview-wrap">
+
+    <!-- Prop Firm Header Card -->
+    <div class="ts-firm-card">
+      <div class="ts-firm-left">
+        <div class="ts-firm-icon">🏆</div>
+        <div>
+          <div class="ts-firm-name">Prop Firm <span>Dashboard</span></div>
+          <div class="ts-firm-sub" id="tsFirmSub">— · $0</div>
+        </div>
+      </div>
+      <div class="ts-firm-badges">
+        <div class="ts-badge ts-badge-blue" id="tsTradeBadge">● 0 Trades</div>
+        <div class="ts-badge ts-badge-green" id="tsProfitBadge">● Profitable</div>
+      </div>
+    </div>
+
+    <!-- 4 Mini Stat Cards -->
+    <div class="ts-mini-grid">
+      <div class="ts-mini-card">
+        <div class="ts-mini-top">
+          <span class="ts-mini-label">DAILY P&L</span>
+          <span class="ts-mini-icon" style="color:var(--blue)">📅</span>
+        </div>
+        <div class="ts-mini-val green" id="tsDailyPnl">+$0.00</div>
+        <div class="ts-mini-sub" id="tsDailyCount">0 trades today</div>
+        <div class="ts-mini-bar"><div class="ts-mini-bar-fill green" id="tsDailyBar" style="width:0%"></div></div>
+      </div>
+      <div class="ts-mini-card">
+        <div class="ts-mini-top">
+          <span class="ts-mini-label">WIN STREAK</span>
+          <span class="ts-mini-icon" style="color:var(--orange)">🔥</span>
+        </div>
+        <div class="ts-mini-val orange" id="tsWinStreak">0</div>
+        <div class="ts-mini-sub" id="tsStreakSub">Cur: 0 | Max: 0</div>
+        <div class="ts-mini-bar"><div class="ts-mini-bar-fill orange" id="tsStreakBar" style="width:0%"></div></div>
+      </div>
+      <div class="ts-mini-card">
+        <div class="ts-mini-top">
+          <span class="ts-mini-label">BEST TRADE</span>
+          <span class="ts-mini-icon" style="color:var(--red)">🎯</span>
+        </div>
+        <div class="ts-mini-val green" id="tsBestTrade">+$0.00</div>
+        <div class="ts-mini-sub">Best single trade</div>
+        <div class="ts-mini-bar"><div class="ts-mini-bar-fill green" id="tsBestBar" style="width:0%"></div></div>
+      </div>
+      <div class="ts-mini-card">
+        <div class="ts-mini-top">
+          <span class="ts-mini-label">WORST TRADE</span>
+          <span class="ts-mini-icon" style="color:var(--yellow)">⚠️</span>
+        </div>
+        <div class="ts-mini-val red" id="tsWorstTrade">-$0.00</div>
+        <div class="ts-mini-sub">Worst single trade</div>
+        <div class="ts-mini-bar"><div class="ts-mini-bar-fill red" id="tsWorstBar" style="width:0%"></div></div>
+      </div>
+    </div>
+
+    <!-- Daily Bar + Key Ratios Row -->
+    <div class="ts-bottom-row">
+      <!-- Daily PnL Bar -->
+      <div class="ts-bar-card">
+        <div class="ts-bar-header">
+          <div class="ts-bar-title">📊 DAILY P&L BAR</div>
+          <div class="ts-bar-legend">
+            <span><i style="background:var(--green)"></i> Profit</span>
+            <span><i style="background:var(--red)"></i> Loss</span>
+          </div>
+        </div>
+        <div style="height:200px;position:relative;"><canvas id="dailyBarChart"></canvas></div>
+      </div>
+
+      <!-- Key Ratios Donut Grid -->
+      <div class="ts-ratios-card">
+        <div class="ts-bar-title" style="margin-bottom:14px;">🎯 KEY RATIOS</div>
+        <div class="ts-donut-grid">
+          <div class="ts-donut-cell">
+            <div class="ts-donut-wrap"><canvas id="donutWR" width="80" height="80"></canvas><div class="ts-donut-center" id="donutWRVal">0%</div></div>
+            <div class="ts-donut-label">WIN RATE</div>
+          </div>
+          <div class="ts-donut-cell">
+            <div class="ts-donut-wrap"><canvas id="donutDD" width="80" height="80"></canvas><div class="ts-donut-center" id="donutDDVal">0.0%</div></div>
+            <div class="ts-donut-label">MAX DRAWDOWN</div>
+          </div>
+          <div class="ts-donut-cell">
+            <div class="ts-donut-wrap"><canvas id="donutPF" width="80" height="80"></canvas><div class="ts-donut-center" id="donutPFVal">0.00</div></div>
+            <div class="ts-donut-label">PROFIT FACTOR</div>
+          </div>
+          <div class="ts-donut-cell">
+            <div class="ts-donut-wrap"><canvas id="donutRR" width="80" height="80"></canvas><div class="ts-donut-center" id="donutRRVal">0.00</div></div>
+            <div class="ts-donut-label">AVG R:R</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ═══ TRADING CALENDAR ═══ -->
+  <div class="ts-cal-wrap">
+    <div class="ts-cal-topbar">
+      <div class="ts-cal-title">📅 Trading Calendar</div>
+      <div class="ts-cal-nav">
+        <button class="ts-cal-btn" onclick="calPrev()">‹</button>
+        <span class="ts-cal-month" id="calMonthLabel">—</span>
+        <button class="ts-cal-btn" onclick="calNext()">›</button>
+      </div>
+    </div>
+    <div class="ts-cal-grid-header">
+      <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+    </div>
+    <div id="calGrid" class="ts-cal-grid-body"></div>
+    <div class="ts-cal-legend">
+      <span><i class="ts-leg-dot" style="background:var(--green)"></i> Profit Day</span>
+      <span><i class="ts-leg-dot" style="background:var(--red)"></i> Loss Day</span>
+      <span><i class="ts-leg-dot" style="background:var(--border2)"></i> No Trade</span>
+    </div>
+  </div>
+
+  <!-- ═══ ORDER HISTORY ═══ -->
+  <div class="ts-orders-wrap">
+    <div class="ts-orders-head-label">■ ORDER HISTORY</div>
+    <div class="ts-orders-toolbar">
+      <div class="ts-orders-left">
+        <span class="ts-orders-tab active" id="sortTab-newest" onclick="setSortTab('newest')">All Trades</span>
+        <span class="ts-orders-count" id="ordersTotal">0 orders</span>
+      </div>
+      <div class="ts-orders-right">
+        <button class="ts-sort-btn active" id="sortBtn-newest" onclick="setSortTab('newest')">● Newest</button>
+        <button class="ts-sort-btn" id="sortBtn-pnl" onclick="setSortTab('pnl')">● By P&L</button>
+        <button class="ts-sort-btn" id="sortBtn-asset" onclick="setSortTab('asset')">● By Asset</button>
+      </div>
+    </div>
+    <div class="ts-orders-table-wrap">
+      <table class="ts-tbl">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>DATE ↕</th>
+            <th>ASSET</th>
+            <th>POSITION</th>
+            <th>SESSION</th>
+            <th>TIME SLOT ↕</th>
+            <th>RESULT</th>
+            <th>R:R</th>
+            <th>RISK $</th>
+            <th>P&L ↕</th>
+            <th>CODE</th>
+            <th>CLASS</th>
+            <th>MODE</th>
+            <th>NOTE</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+    </div>
+    <div class="ts-orders-footer">
+      <div class="ts-pag-info" id="pagInfo">1–0 of 0 orders</div>
+      <div class="ts-pag-btns" id="pagBtns"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- ══════════════════ MODAL: LOG TRADE / SETTINGS ══════════════════ -->
@@ -565,20 +860,16 @@ input[readonly]{opacity:0.6;cursor:default !important;}
           <div class="field">
             <label>Day</label>
             <select id="fDay">
-              <option value="Mon" selected >Mon</option>
-              <option value="Tue">Tue</option>
-              <option value="Wed">Wed</option>
-              <option value="Thu">Thu</option>
+              <option value="Mon">Mon</option><option value="Tue">Tue</option>
+              <option value="Wed">Wed</option><option value="Thu">Thu</option>
               <option value="Fri">Fri</option>
             </select>
           </div>
           <div class="field">
             <label>Session</label>
             <select id="fSession">
-              <option value="AS" selected >AS (Asia)</option>
-              <option value="LO">LO (London)</option>
-              <option value="NY">NY (New York)</option>
-              <option value="Out">Out</option>
+              <option value="Out">Out</option><option value="AS">AS (Asia)</option>
+              <option value="LO">LO (London)</option><option value="NY">NY (New York)</option>
             </select>
           </div>
           <div class="field">
@@ -607,10 +898,10 @@ input[readonly]{opacity:0.6;cursor:default !important;}
           <div class="field">
             <label>Asset</label>
             <select id="fAsset" onchange="calcAuto()">
-              <option value="MNQ1" selected >MNQ1</option>
-              <option value="MGC1">MGC1</option>
               <option value="GC1">GC1</option>
+              <option value="MGC1">MGC1</option>
               <option value="NQ1">NQ1</option>
+              <option value="MNQ1">MNQ1</option>
               <option value="XAUUSD">XAUUSD</option>
             </select>
           </div>
@@ -658,12 +949,9 @@ input[readonly]{opacity:0.6;cursor:default !important;}
           <div class="field">
             <label>Model</label>
             <select id="fModel">
-              <option value="RBR">RBR</option>
-              <option value="RBD">RBD</option>
-              <option value="DBD">DBD</option>
-              <option value="DBR">DBR</option>
-              <option value="R">R</option>
-              <option value="D">D</option>
+              <option value="RBR">RBR</option><option value="RBD">RBD</option>
+              <option value="DBD">DBD</option><option value="DBR">DBR</option>
+              <option value="R">R</option><option value="D">D</option>
             </select>
           </div>
           <div class="field">
@@ -796,7 +1084,7 @@ input[readonly]{opacity:0.6;cursor:default !important;}
         <div class="config-banner">
           <strong>🔗 เชื่อมต่อ Google Sheets ผ่าน Apps Script</strong><br>
           1. สร้าง Google Sheet → <strong>Extensions → Apps Script</strong><br>
-          2. วางโค้ดจาก <a href="google-apps-script.txt" target="_blank" style="color:var(--cyan);text-decoration:none;background:var(--bg);padding:1px 6px;border-radius:4px;font-size:11px;font-family:monospace;border:1px solid rgba(57,208,216,0.3);transition:border-color 0.2s;" onmouseover="this.style.borderColor='var(--cyan)'" onmouseout="this.style.borderColor='rgba(57,208,216,0.3)'">google-apps-script.gs ↗</a> → Deploy เป็น Web App<br>
+          2. วางโค้ดจาก <code>google-apps-script.gs</code> → Deploy เป็น Web App<br>
           3. Copy URL มาวางด้านล่าง<br>
           <em style="color:var(--green);font-size:11px;">💡 แต่ละพอร์ตจะถูกบันทึกแยก Sheet อัตโนมัติ</em>
         </div>
@@ -846,8 +1134,16 @@ let allTrades    = JSON.parse(localStorage.getItem('demoTrades') || '{}');
 let activePortId = localStorage.getItem('activePortId') || '';
 let equityChart  = null;
 let monthlyChart = null;
+let dailyBarChart = null;
+let donutCharts  = {};
 let activeFilters = {};
 let filtersOpen = false;
+let calYear = new Date().getFullYear();
+let calMonth = new Date().getMonth();
+let ordersPage = 1;
+const ORDERS_PER_PAGE = 20;
+let currentFilteredTrades = [];
+let currentSortTab = 'newest';
 
 const PALETTE = ['#3d9eff','#00d97e','#ff4757','#ffa657','#b084ff','#00e5ff','#ffd166','#ff7b72','#79c0ff','#d2a8ff'];
 let pmColor = PALETTE[0];
@@ -1223,7 +1519,13 @@ function renderDash(portId) {
 
   updateEquityChart(closed, INIT);
   updateMonthlyChart(closed);
+  updateDailyBarChart(closed);
+  updateTopstepOverview(trades, closed, port);
   updateWinRateBars(closed);
+  currentFilteredTrades = trades;
+  ordersPage = 1;
+  renderOrdersTable();
+  renderCalendar(trades);
 }
 
 // ════════════════════════════════════════
@@ -1247,6 +1549,27 @@ function initCharts() {
     options:{...cd,responsive:true,maintainAspectRatio:false,
       scales:{...cd.scales,y:{...cd.scales.y,ticks:{...cd.scales.y.ticks,callback:v=>'$'+v.toLocaleString('en')}}}}
   });
+  dailyBarChart = new Chart(document.getElementById('dailyBarChart'), {
+    type:'bar', data:{labels:[],datasets:[{data:[],backgroundColor:[],borderRadius:4, barThickness:'flex', maxBarThickness:40}]},
+    options:{...cd,responsive:true,maintainAspectRatio:false,
+      scales:{...cd.scales,
+        x:{...cd.scales.x, ticks:{...cd.scales.x.ticks, maxTicksLimit:30, maxRotation:45}},
+        y:{...cd.scales.y,ticks:{...cd.scales.y.ticks,callback:v=>'$'+v.toLocaleString('en')}}},
+      plugins:{...cd.plugins, tooltip:{...cd.plugins.tooltip,
+        callbacks:{label:ctx=>' $'+ctx.parsed.y.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2})}
+      }}}
+  });
+
+  // Donut charts
+  const mkDonut = (id, color) => new Chart(document.getElementById(id), {
+    type:'doughnut',
+    data:{datasets:[{data:[0,100],backgroundColor:[color,'rgba(255,255,255,0.05)'],borderWidth:0,borderRadius:4}]},
+    options:{cutout:'72%',responsive:false,plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{animateRotate:true}}
+  });
+  donutCharts.wr  = mkDonut('donutWR',  '#00d97e');
+  donutCharts.dd  = mkDonut('donutDD',  '#ff4757');
+  donutCharts.pf  = mkDonut('donutPF',  '#ff9a3c');
+  donutCharts.rr  = mkDonut('donutRR',  '#3d9eff');
 }
 
 function updateEquityChart(closed, INIT) {
@@ -1303,6 +1626,249 @@ function updateWinRateBars(closed) {
       </div>`;
     }).join('') || '<div style="font-size:11px;color:var(--muted);text-align:center;padding:14px">ยังไม่มีข้อมูล</div>';
   });
+}
+
+// ════════════════════════════════════════
+// TOPSTEP OVERVIEW
+// ════════════════════════════════════════
+function updateTopstepOverview(trades, closed, port) {
+  const wins   = closed.filter(t => t.result === 'TP');
+  const losses = closed.filter(t => t.result === 'Loss');
+  const pnlSum = closed.reduce((s,t) => s+(parseFloat(t.pnl)||0),0);
+  const wr     = closed.length ? wins.length/closed.length*100 : 0;
+  const gp     = wins.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const gl     = Math.abs(losses.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0));
+  const pf     = gl ? gp/gl : (gp>0?9.99:0);
+  const avgRR  = closed.length ? closed.reduce((s,t)=>s+(parseFloat(t.rr)||0),0)/closed.length : 0;
+
+  // Max DD
+  let peak=port.initBalance||10000,maxDD=0,run=peak;
+  [...closed].sort((a,b)=>new Date(a.date||a.createdAt)-new Date(b.date||b.createdAt)).forEach(t=>{
+    run+=parseFloat(t.pnl)||0;
+    if(run>peak)peak=run;
+    const d=peak>0?(peak-run)/peak*100:0;
+    if(d>maxDD)maxDD=d;
+  });
+
+  // Firm sub
+  const S = (id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  S('tsFirmSub', (port.name||'—') + ' · $' + (port.initBalance||0).toLocaleString('en'));
+  S('tsTradeBadge','● '+closed.length+' Trades');
+  const profBadge = document.getElementById('tsProfitBadge');
+  if(profBadge){profBadge.textContent = pnlSum>=0?'● Profitable':'● In Loss'; profBadge.className='ts-badge '+(pnlSum>=0?'ts-badge-green':'ts-badge-red');}
+
+  // Daily PnL (today)
+  const today = new Date().toISOString().slice(0,10);
+  const todayTrades = closed.filter(t=>(t.date||'').slice(0,10)===today);
+  const dailyPnl = todayTrades.reduce((s,t)=>s+(parseFloat(t.pnl)||0),0);
+  const dp = document.getElementById('tsDailyPnl');
+  if(dp){dp.textContent=(dailyPnl>=0?'+':'')+'$'+Math.abs(dailyPnl).toFixed(2); dp.className='ts-mini-val '+(dailyPnl>=0?'green':'red');}
+  S('tsDailyCount', todayTrades.length+' trades today');
+  const maxAbs = closed.length ? Math.max(...closed.map(t=>Math.abs(parseFloat(t.pnl)||0))) : 1;
+  const setBar=(id,pct)=>{const e=document.getElementById(id);if(e)e.style.width=Math.min(100,Math.max(0,pct))+'%';};
+  setBar('tsDailyBar', Math.min(100, Math.abs(dailyPnl)/(maxAbs||1)*100));
+
+  // Win streak
+  let curStreak=0, maxStreak=0, tmpStreak=0;
+  const sortedC=[...closed].sort((a,b)=>new Date(a.date||a.createdAt)-new Date(b.date||b.createdAt));
+  sortedC.forEach(t=>{if(t.result==='TP'){tmpStreak++;if(tmpStreak>maxStreak)maxStreak=tmpStreak;}else tmpStreak=0;});
+  // current streak from end
+  for(let i=sortedC.length-1;i>=0;i--){if(sortedC[i].result==='TP')curStreak++;else break;}
+  const sw=document.getElementById('tsWinStreak');if(sw){sw.textContent=curStreak;sw.className='ts-mini-val '+(curStreak>0?'orange':'');}
+  S('tsStreakSub','Cur: '+curStreak+' | Max: '+maxStreak);
+  setBar('tsStreakBar', maxStreak>0?curStreak/maxStreak*100:0);
+
+  // Best/Worst
+  const pnls = closed.map(t=>parseFloat(t.pnl)||0);
+  const best  = pnls.length ? Math.max(...pnls) : 0;
+  const worst = pnls.length ? Math.min(...pnls) : 0;
+  const btEl=document.getElementById('tsBestTrade');if(btEl){btEl.textContent='+$'+best.toFixed(2);}
+  const wtEl=document.getElementById('tsWorstTrade');if(wtEl){wtEl.textContent='-$'+Math.abs(worst).toFixed(2);}
+  setBar('tsBestBar', best>0?(best/maxAbs*100):0);
+  setBar('tsWorstBar', worst<0?(Math.abs(worst)/maxAbs*100):0);
+
+  // Donuts
+  const updDonut=(chart,labelEl,pct,display)=>{
+    chart.data.datasets[0].data=[Math.min(100,pct),Math.max(0,100-pct)];
+    chart.update();
+    const el=document.getElementById(labelEl);if(el)el.textContent=display;
+  };
+  updDonut(donutCharts.wr,'donutWRVal',wr,Math.round(wr)+'%');
+  updDonut(donutCharts.dd,'donutDDVal',Math.min(maxDD,100),maxDD.toFixed(1)+'%');
+  const pfPct=Math.min((pf/5)*100,100);
+  updDonut(donutCharts.pf,'donutPFVal',pfPct,pf>=9.99?'∞':pf.toFixed(2));
+  const rrPct=Math.min((avgRR/5)*100,100);
+  updDonut(donutCharts.rr,'donutRRVal',rrPct,avgRR.toFixed(2));
+}
+
+// ════════════════════════════════════════
+// DAILY BAR CHART
+// ════════════════════════════════════════
+function updateDailyBarChart(closed) {
+  const dm = {};
+  [...closed].sort((a,b) => new Date(a.date||a.createdAt) - new Date(b.date||b.createdAt)).forEach(t => {
+    const d = (t.date||t.createdAt||'').slice(0,10);
+    if (!d) return;
+    dm[d] = (dm[d]||0) + (parseFloat(t.pnl)||0);
+  });
+  const L = Object.keys(dm);
+  const D = Object.values(dm);
+  dailyBarChart.data.labels = L.map(d => {
+    const dt = new Date(d+'T00:00:00');
+    return (dt.getMonth()+1)+'/'+(dt.getDate());
+  });
+  dailyBarChart.data.datasets[0].data = D.map(v => parseFloat(v.toFixed(2)));
+  dailyBarChart.data.datasets[0].backgroundColor = D.map(v => v >= 0 ? 'rgba(0,217,126,0.78)' : 'rgba(255,71,87,0.78)');
+  dailyBarChart.update();
+}
+
+// ════════════════════════════════════════
+// CALENDAR
+// ════════════════════════════════════════
+function renderCalendar(trades) {
+  const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  document.getElementById('calMonthLabel').textContent = mn[calMonth] + ' ' + calYear;
+
+  const closed = trades.filter(t=>t.result==='TP'||t.result==='Loss');
+  const dm = {};
+  closed.forEach(t => {
+    const d = (t.date||t.createdAt||'').slice(0,10);
+    if (!d) return;
+    if (!dm[d]) dm[d] = {pnl:0, count:0};
+    dm[d].pnl += parseFloat(t.pnl)||0;
+    dm[d].count++;
+  });
+
+  const today = new Date();
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth+1, 0);
+  const startDow = firstDay.getDay();
+  const pad = v => String(v).padStart(2,'0');
+
+  let html = '';
+  // Blanks before
+  for (let i = 0; i < startDow; i++) html += `<div class="ts-cal-cell other-month"></div>`;
+
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const key = calYear+'-'+pad(calMonth+1)+'-'+pad(d);
+    const data = dm[key];
+    const isToday = d===today.getDate() && calMonth===today.getMonth() && calYear===today.getFullYear();
+    let cls = 'ts-cal-cell';
+    if (data) cls += data.pnl >= 0 ? ' profit-day has-data' : ' loss-day has-data';
+    if (isToday) cls += ' is-today';
+
+    let inner = `<div class="ts-cal-day-num">${d}</div>`;
+    if (data) {
+      const sign = data.pnl >= 0 ? '+' : '';
+      const pnlCls = data.pnl >= 0 ? 'pos' : 'neg';
+      inner += `<div class="ts-cal-pnl ${pnlCls}">${sign}$${Math.abs(data.pnl).toFixed(0)}</div>`;
+      inner += `<div class="ts-cal-cnt">${data.count} trade${data.count>1?'s':''}</div>`;
+    }
+    html += `<div class="${cls}">${inner}</div>`;
+  }
+
+  const remaining = (7 - ((startDow + lastDay.getDate()) % 7)) % 7;
+  for (let i = 0; i < remaining; i++) html += `<div class="ts-cal-cell other-month"></div>`;
+  document.getElementById('calGrid').innerHTML = html;
+}
+
+function calPrev() {
+  calMonth--;
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  if (activePortId) renderCalendar(currentFilteredTrades);
+}
+function calNext() {
+  calMonth++;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (activePortId) renderCalendar(currentFilteredTrades);
+}
+
+// ════════════════════════════════════════
+// SORT TAB
+// ════════════════════════════════════════
+function setSortTab(tab) {
+  currentSortTab = tab;
+  ['newest','pnl','asset'].forEach(t=>{
+    const b=document.getElementById('sortBtn-'+t);
+    if(b)b.className='ts-sort-btn'+(t===tab?' active':'');
+  });
+  ordersPage = 1;
+  renderOrdersTable();
+}
+
+// ════════════════════════════════════════
+// ORDERS TABLE + PAGINATION
+// ════════════════════════════════════════
+function renderOrdersTable() {
+  let trades = [...currentFilteredTrades];
+  if (currentSortTab === 'pnl') trades.sort((a,b) => (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0));
+  else if (currentSortTab === 'asset') trades.sort((a,b) => (a.asset||'').localeCompare(b.asset||''));
+  else trades.sort((a,b) => new Date(b.date||b.createdAt||0) - new Date(a.date||a.createdAt||0));
+
+  const total = trades.length;
+  const totalPages = Math.max(1, Math.ceil(total / ORDERS_PER_PAGE));
+  if (ordersPage > totalPages) ordersPage = totalPages;
+  const start = (ordersPage - 1) * ORDERS_PER_PAGE;
+  const end   = Math.min(start + ORDERS_PER_PAGE, total);
+  const page  = trades.slice(start, end);
+
+  const totEl = document.getElementById('ordersTotal');
+  if(totEl) totEl.textContent = total + ' orders';
+
+  const sessCls = s => ({AS:'ts-sess-AS',LO:'ts-sess-LO',NY:'ts-sess-NY',Out:'ts-sess-Out'}[s]||'ts-sess-Out');
+
+  const tbody = document.getElementById('ordersBody');
+  if (!page.length) {
+    tbody.innerHTML = `<tr><td colspan="14" style="text-align:center;padding:32px;color:var(--muted);font-size:12px;">ยังไม่มีออเดอร์</td></tr>`;
+  } else {
+    tbody.innerHTML = page.map((t, i) => {
+      const idx  = start + i + 1;
+      const pnl  = parseFloat(t.pnl)||0;
+      const pnlSign = pnl > 0 ? '+' : '';
+      const pnlCls  = pnl > 0 ? 'ts-pnl-pos' : pnl < 0 ? 'ts-pnl-neg' : 'ts-pnl-zero';
+      const pnlTxt  = pnlSign + (pnl >= 0 ? '+' : '') + '$' + Math.abs(pnl).toFixed(2);
+      const resCls  = {TP:'ts-result-tp',Loss:'ts-result-loss',Miss:'ts-result-miss'}[t.result]||'ts-result-miss';
+      const resTxt  = {TP:'● TP',Loss:'● Loss',Miss:'● Miss'}[t.result]||t.result||'—';
+      const rrTxt   = t.rr > 0 ? parseFloat(t.rr).toFixed(2) : '—';
+      const posCls  = t.position === 'Buy' ? 'ts-pos-buy' : t.position === 'Sell' ? 'ts-pos-sell' : '';
+      const note    = t.tip || t.pictureUrl ? `<a href="${t.pictureUrl||'#'}" target="_blank" style="color:var(--muted2);font-size:10px;text-decoration:none;" title="${t.tip||''}">🔗 ${(t.tip||t.pictureUrl||'').slice(0,18)}…</a>` : '—';
+      return `<tr>
+        <td class="ts-td-num">${idx}</td>
+        <td class="ts-td-date">${t.date||'—'}</td>
+        <td class="ts-td-asset">${t.asset||'—'}</td>
+        <td>${t.position?`<span class="ts-pos-pill ${posCls}">${t.position}</span>`:'—'}</td>
+        <td>${t.session?`<span class="ts-sess-pill ${sessCls(t.session)}">${t.session}</span>`:'—'}</td>
+        <td style="color:var(--muted2);font-size:10px;">${t.timeSlot||'—'}</td>
+        <td class="${resCls}">${resTxt}</td>
+        <td class="ts-rr">${rrTxt}</td>
+        <td style="font-family:'Space Mono',monospace;color:var(--orange);">${t.risk>0?'$'+parseFloat(t.risk).toFixed(2):'—'}</td>
+        <td class="${pnlCls}">${pnlTxt.replace('++','+ ')}</td>
+        <td style="font-size:10px;color:var(--muted2);">${t.code||'—'}</td>
+        <td style="font-size:10px;color:var(--yellow);">${t.cls||'—'}</td>
+        <td style="font-size:10px;color:var(--purple);">${t.mode||'—'}</td>
+        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;">${note}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  // Pagination
+  document.getElementById('pagInfo').textContent = total > 0 ? `${start+1}–${end} of ${total} orders` : 'No orders';
+  const pagBtns = document.getElementById('pagBtns');
+  let btns = `<button class="ts-pag-btn" onclick="goPage(${ordersPage-1})" ${ordersPage<=1?'disabled':''}>‹</button>`;
+  let pStart = Math.max(1, ordersPage-2), pEnd = Math.min(totalPages, ordersPage+2);
+  if(pStart>1) btns+=`<button class="ts-pag-btn" onclick="goPage(1)">1</button>${pStart>2?'<span style="color:var(--muted);padding:0 4px;font-size:11px">…</span>':''}`;
+  for(let p=pStart;p<=pEnd;p++) btns+=`<button class="ts-pag-btn${p===ordersPage?' active':''}" onclick="goPage(${p})">${p}</button>`;
+  if(pEnd<totalPages) btns+=`${pEnd<totalPages-1?'<span style="color:var(--muted);padding:0 4px;font-size:11px">…</span>':''}<button class="ts-pag-btn" onclick="goPage(${totalPages})">${totalPages}</button>`;
+  btns+=`<button class="ts-pag-btn" onclick="goPage(${ordersPage+1})" ${ordersPage>=totalPages?'disabled':''}>›</button>`;
+  pagBtns.innerHTML = btns;
+}
+
+function goPage(p) {
+  const total = currentFilteredTrades.length;
+  const totalPages = Math.max(1, Math.ceil(total / ORDERS_PER_PAGE));
+  ordersPage = Math.max(1, Math.min(p, totalPages));
+  renderOrdersTable();
+  document.querySelector('.ts-orders-wrap')?.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 // ════════════════════════════════════════
