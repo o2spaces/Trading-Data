@@ -1456,17 +1456,28 @@ function collectForm() {
 // Google Sheet อาจส่ง createdAt มาแทน date
 // ════════════════════════════════════════
 function getTradeDate(t) {
-  // 1) ถ้ามี t.date และเป็น YYYY-MM-DD หรือ format ปกติ → ใช้เลย
+  // 1) YYYY-MM-DD format → ใช้เลย (ไม่ต้อง parse ผ่าน Date object)
   if (t.date && /^\d{4}-\d{2}-\d{2}/.test(t.date)) return t.date.slice(0, 10);
-  // 2) ถ้า t.date เป็น ISO string (มี T) → แปลงเป็น local date string
+  
+  // 2) ISO string (มี T) → แปลงเป็น local date string
   if (t.date && t.date.includes('T')) {
     const d = new Date(t.date);
-    if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (!isNaN(d)) {
+      // ✅ ใช้ local time ไม่ใช่ UTC
+      return d.getFullYear() + '-' + 
+             String(d.getMonth()+1).padStart(2,'0') + '-' + 
+             String(d.getDate()).padStart(2,'0');
+    }
   }
-  // 3) ถ้ามี createdAt → แปลงเป็น local date string
+
+  // 3) createdAt → แปลงเป็น local date string
   if (t.createdAt) {
     const d = new Date(t.createdAt);
-    if (!isNaN(d)) return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    if (!isNaN(d)) {
+      return d.getFullYear() + '-' + 
+             String(d.getMonth()+1).padStart(2,'0') + '-' + 
+             String(d.getDate()).padStart(2,'0');
+    }
   }
   return '—';
 }
