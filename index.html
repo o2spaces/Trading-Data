@@ -1501,7 +1501,9 @@ function renderDash(portId) {
   const ret    = INIT ? pnlSum / INIT * 100 : 0;
   const gp     = wins.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0);
   const gl     = Math.abs(losses.reduce((s,t) => s + (parseFloat(t.pnl)||0), 0));
-  const pf     = gl ? gp / gl : gp > 0 ? 999 : 0;
+  console.log('gp:', gp, 'gl:', gl, 'wins:', wins.length, 'losses:', losses.length);
+console.log('sample loss pnl:', losses[0]?.pnl, losses[0]?.PnL);
+const pf = gl ? gp/gl : (gp>0?9.99:0);
   const exp    = closed.length ? pnlSum / closed.length : 0;
   const avgRR  = closed.length ? closed.reduce((s,t) => s + (parseFloat(t.rr)||0), 0) / closed.length : 0;
 
