@@ -449,6 +449,46 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
   .form-row.cols3{grid-template-columns:1fr 1fr;}
   .winrate-grid{grid-template-columns:1fr;}
 }
+
+/* ── DATE / TIME INPUT WITH CLICKABLE ICON ── */
+.input-icon-wrap {
+  position: relative;
+  display: block;
+}
+.input-icon-wrap input[type="date"],
+.input-icon-wrap input[type="time"] {
+  width: 100%;
+  padding-right: 34px !important;
+  cursor: pointer;
+}
+/* Hide the native browser picker icon completely */
+.input-icon-wrap input[type="date"]::-webkit-calendar-picker-indicator,
+.input-icon-wrap input[type="time"]::-webkit-calendar-picker-indicator {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 2;
+  margin: 0;
+  padding: 0;
+}
+/* Custom emoji icon — sits on top visually, clicks pass through to native input */
+.input-icon-wrap .pick-icon {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 14px;
+  line-height: 1;
+  pointer-events: none;   /* let clicks fall to the <input> below */
+  z-index: 1;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  user-select: none;
+}
+.input-icon-wrap:hover .pick-icon { opacity: 1; }
 </style>
 </head>
 <body>
@@ -876,7 +916,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
           </div>
           <div class="field">
             <label>Date</label>
-            <input type="date" id="fDate">
+            <div class="input-icon-wrap"><input type="date" id="fDate"><span class="pick-icon">📅</span></div>
           </div>
           <div class="field">
             <label>Time Slot</label>
@@ -913,7 +953,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
           </div>
           <div class="field">
             <label>Time Entry</label>
-            <input type="time" id="fTimeEntry">
+            <div class="input-icon-wrap"><input type="time" id="fTimeEntry"><span class="pick-icon">🕐</span></div>
           </div>
           <div class="field">
             <label>Code</label>
@@ -983,12 +1023,24 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
         <!-- ROW: Result / Max RR / Picture -->
         <div class="form-row cols3">
           <div class="field">
-            <label>Result</label>
-            <select id="fResult" onchange="calcAuto()">
+            <label>Result <span style="color:var(--red);font-size:9px;font-weight:700;letter-spacing:0;">★ จำเป็น</span></label>
+            <select id="fResult" onchange="calcAuto(); onResultChange(this);"
+              style="border-color:rgba(255,71,87,0.55);">
+              <option value="" selected>— เลือก Result —</option>
               <option value="TP">TP (Win)</option>
               <option value="Loss">Loss (SL)</option>
               <option value="Miss">Miss</option>
             </select>
+            <div id="resultWarn" style="
+              display:flex;align-items:center;gap:5px;
+              margin-top:5px;padding:5px 8px;
+              background:rgba(255,71,87,0.10);
+              border:1px solid rgba(255,71,87,0.45);
+              border-radius:6px;
+              font-size:10px;font-weight:700;color:var(--red);
+              animation:warnPulse 1.6s ease-in-out infinite;">
+              ⚠️ กรุณาเลือก Result ก่อนบันทึก!
+            </div>
           </div>
           <div class="field">
             <label>Max RR</label>
@@ -1403,6 +1455,12 @@ function collectForm() {
 
   if (!portId) { toast('⚠️ กรุณาเลือกพอร์ต', 'error'); return null; }
   if (!date)   { toast('⚠️ กรุณาเลือกวันที่', 'error'); return null; }
+  if (!result) {
+    toast('⚠️ กรุณาเลือก Result ก่อนบันทึก!', 'error');
+    const rEl = document.getElementById('fResult');
+    if (rEl) { rEl.style.borderColor='var(--red)'; rEl.style.boxShadow='0 0 0 3px rgba(255,71,87,0.22)'; rEl.scrollIntoView({behavior:'smooth',block:'center'}); }
+    return null;
+  }
   if (risk <= 0 && result !== 'Miss') { toast('⚠️ กรุณาใส่ Entry / SL เพื่อคำนวณ Risk', 'error'); return null; }
 
   const rr   = parseFloat(document.getElementById('fRR').value) || 0;
@@ -2268,9 +2326,14 @@ function resetForm() {
     const el = document.getElementById(id);
     if (el) { el.value = ''; el.style.color = ''; delete el.dataset.userEdited; }
   });
-  ['fDay','fSession','fTimeSlot','fCode','fClass','fMode','fModel','fZone','fResult','fAsset'].forEach(id=>{
+  ['fDay','fSession','fTimeSlot','fCode','fClass','fMode','fModel','fZone','fAsset'].forEach(id=>{
     const el=document.getElementById(id); if(el) el.selectedIndex=0;
   });
+  // Reset Result → blank + show warning again
+  const resEl = document.getElementById('fResult');
+  if (resEl) { resEl.value = ''; resEl.style.borderColor = 'rgba(255,71,87,0.55)'; resEl.style.boxShadow = ''; }
+  const resWarn = document.getElementById('resultWarn');
+  if (resWarn) resWarn.style.display = 'flex';
   const posEl = document.getElementById('fPosition');
   if (posEl) { posEl.value=''; posEl.style.color=''; }
   const warnEl = document.getElementById('riskWarn');
@@ -2297,6 +2360,19 @@ function switchTab(tab) {
 }
 function openPm()  { renderPmList(); buildColorPicker(); document.getElementById('pmOverlay').classList.add('show'); }
 function closePm() { document.getElementById('pmOverlay').classList.remove('show'); }
+
+// ── Result field: show/hide warning & border ──
+function onResultChange(el) {
+  const warn = document.getElementById('resultWarn');
+  if (el.value) {
+    el.style.borderColor = '';
+    el.style.boxShadow  = '';
+    if (warn) warn.style.display = 'none';
+  } else {
+    el.style.borderColor = 'rgba(255,71,87,0.55)';
+    if (warn) warn.style.display = 'flex';
+  }
+}
 </script>
 </body>
 </html>
