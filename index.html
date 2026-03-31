@@ -1081,7 +1081,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
               <input type="date" id="fDate" oninput="syncDatePicker(this.value)">
               <button type="button" class="pick-icon-btn" title="เปิดตัวเลือกวันที่" onclick="toggleDatePicker(event)">📅</button>
             </div>
-            <div class="custom-date-picker" id="customDatePicker"></div>
+            <div class="custom-date-picker" id="customDatePicker" onclick="event.stopPropagation()"></div>
           </div>
           <div class="field">
             <label>Time Slot</label>
@@ -1122,7 +1122,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
               <input type="time" id="fTimeEntry" oninput="syncTimePicker(this.value)">
               <button type="button" class="pick-icon-btn" title="เปิดตัวเลือกเวลา" onclick="toggleTimePicker(event)">🕐</button>
             </div>
-            <div class="custom-time-picker" id="customTimePicker"></div>
+            <div class="custom-time-picker" id="customTimePicker" onclick="event.stopPropagation()"></div>
           </div>
           <div class="field">
             <label>Code</label>
@@ -1298,7 +1298,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
           <label>💡 Tip / Note</label>
           <textarea id="fTip" placeholder="บันทึกสิ่งที่เรียนรู้, จุดที่ต้องระวัง..." style="padding-right:40px;"></textarea>
           <button class="emoji-trigger-btn" id="emojiTriggerBtn" type="button" onclick="toggleEmojiPanel(event)" title="เลือกอีโมจิ">😊</button>
-          <div class="emoji-panel" id="emojiPanel">
+          <div class="emoji-panel" id="emojiPanel" onclick="event.stopPropagation()">
             <div class="emoji-panel-header">ใส่อีโมจิ</div>
             <div class="emoji-recents" id="emojiRecents">
               <div class="emoji-recents-label">ล่าสุด</div>
@@ -2617,7 +2617,9 @@ function tpAdj(part, dir) {
 
 function tpSetQuick(val) {
   const [h,m]=val.split(':').map(Number); _tpH=h; _tpM=m;
-  tpConfirm();
+  const pad = v=>String(v).padStart(2,'0');
+  const hEl=document.getElementById('tpHVal'); if(hEl) hEl.textContent=pad(_tpH);
+  const mEl=document.getElementById('tpMVal'); if(mEl) mEl.textContent=pad(_tpM);
 }
 
 function tpConfirm() {
@@ -2628,13 +2630,11 @@ function tpConfirm() {
 }
 
 // close all custom pickers on outside click
-document.addEventListener('click', function(e) {
-  const dp = document.getElementById('customDatePicker');
-  const tp = document.getElementById('customTimePicker');
-  const ep = document.getElementById('emojiPanel');
-  if (dp && dp.classList.contains('open') && !dp.closest('.field').contains(e.target)) dp.classList.remove('open');
-  if (tp && tp.classList.contains('open') && !tp.closest('.field').contains(e.target)) tp.classList.remove('open');
-  if (ep && ep.classList.contains('open') && !ep.closest('.emoji-field-wrap').contains(e.target)) ep.classList.remove('open');
+// (pickers themselves stopPropagation, so any click reaching document = outside)
+document.addEventListener('click', function() {
+  document.getElementById('customDatePicker')?.classList.remove('open');
+  document.getElementById('customTimePicker')?.classList.remove('open');
+  document.getElementById('emojiPanel')?.classList.remove('open');
 });
 
 // ════════════════════════════════════════
