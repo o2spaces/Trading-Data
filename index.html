@@ -161,6 +161,7 @@ body::before{content:'';position:fixed;inset:0;background-image:
 .form-row.cols4{grid-template-columns:1fr 1fr 1fr 1fr;}
 .form-row.cols5{grid-template-columns:1fr 1fr 1fr 1fr 1fr;}
 .field label{display:block;font-size:10px;color:var(--muted2);margin-bottom:5px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;}
+.field { position: relative; }
 .field input,.field select,.field textarea{
   width:100%;background:var(--bg);border:1px solid var(--border2);
   border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;
@@ -453,42 +454,202 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
 /* ── DATE / TIME INPUT WITH CLICKABLE ICON ── */
 .input-icon-wrap {
   position: relative;
-  display: block;
+  display: flex;
+  align-items: center;
 }
 .input-icon-wrap input[type="date"],
 .input-icon-wrap input[type="time"] {
   width: 100%;
   padding-right: 34px !important;
-  cursor: pointer;
+  cursor: text;
 }
-/* Hide the native browser picker icon completely */
+/* Hide the native browser picker icon */
 .input-icon-wrap input[type="date"]::-webkit-calendar-picker-indicator,
 .input-icon-wrap input[type="time"]::-webkit-calendar-picker-indicator {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-  z-index: 2;
-  margin: 0;
-  padding: 0;
+  display: none !important;
 }
-/* Custom emoji icon — sits on top visually, clicks pass through to native input */
-.input-icon-wrap .pick-icon {
+/* Custom clickable icon button */
+.input-icon-wrap .pick-icon-btn {
   position: absolute;
-  right: 9px;
+  right: 6px;
   top: 50%;
   transform: translateY(-50%);
   font-size: 14px;
   line-height: 1;
-  pointer-events: none;   /* let clicks fall to the <input> below */
-  z-index: 1;
-  opacity: 0.7;
-  transition: opacity 0.15s;
+  cursor: pointer;
+  z-index: 3;
+  opacity: 0.65;
+  transition: opacity 0.15s, transform 0.15s;
   user-select: none;
+  background: none;
+  border: none;
+  padding: 2px;
+  border-radius: 4px;
 }
-.input-icon-wrap:hover .pick-icon { opacity: 1; }
+.input-icon-wrap .pick-icon-btn:hover {
+  opacity: 1;
+  transform: translateY(-50%) scale(1.15);
+}
+
+/* ── CUSTOM DATE PICKER ── */
+.custom-date-picker, .custom-time-picker {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 9999;
+  background: var(--card2);
+  border: 1px solid var(--border3);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55);
+  animation: pickerIn 0.16s ease;
+  min-width: 240px;
+}
+.custom-date-picker.open, .custom-time-picker.open { display: block; }
+@keyframes pickerIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+
+/* Date picker internals */
+.cdp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid var(--border);
+}
+.cdp-nav { background: none; border: 1px solid var(--border2); color: var(--muted2); width: 26px; height: 26px; border-radius: 6px; cursor: pointer; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+.cdp-nav:hover { border-color: var(--blue); color: var(--blue); }
+.cdp-month-year { font-size: 13px; font-weight: 800; color: var(--text); }
+.cdp-dow-row { display: grid; grid-template-columns: repeat(7,1fr); padding: 6px 8px 2px; }
+.cdp-dow { font-size: 9px; font-weight: 700; color: var(--muted); text-align: center; padding: 3px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+.cdp-days { display: grid; grid-template-columns: repeat(7,1fr); padding: 0 8px 8px; gap: 2px; }
+.cdp-day {
+  aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer;
+  color: var(--text); transition: all 0.12s; border: none; background: none;
+}
+.cdp-day:hover { background: var(--border2); }
+.cdp-day.today { color: var(--blue); font-weight: 800; }
+.cdp-day.selected { background: var(--accent); color: #fff; }
+.cdp-day.other-month { opacity: 0.28; }
+.cdp-day.weekend { color: var(--muted2); }
+
+/* Time picker internals */
+.ctp-body {
+  padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-width: 220px;
+}
+.ctp-title { font-size: 10px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+.ctp-row { display: flex; align-items: center; gap: 8px; }
+.ctp-col { display: flex; flex-direction: column; align-items: center; gap: 4px; flex: 1; }
+.ctp-label { font-size: 9px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; }
+.ctp-val { font-size: 28px; font-weight: 800; color: var(--text); font-family: 'Space Mono', monospace; min-width: 48px; text-align: center; }
+.ctp-btn { background: none; border: 1px solid var(--border2); color: var(--muted2); border-radius: 6px; width: 32px; height: 26px; cursor: pointer; font-size: 13px; transition: all 0.12s; }
+.ctp-btn:hover { border-color: var(--blue); color: var(--blue); }
+.ctp-sep { font-size: 24px; font-weight: 800; color: var(--muted); padding-bottom: 4px; }
+.ctp-quick { display: flex; flex-wrap: wrap; gap: 4px; padding-top: 6px; border-top: 1px solid var(--border); }
+.ctp-quick-btn { padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border2); background: none; color: var(--muted2); font-size: 10px; font-weight: 700; cursor: pointer; font-family: 'Space Mono', monospace; transition: all 0.12s; }
+.ctp-quick-btn:hover { border-color: var(--blue); color: var(--blue); background: rgba(61,158,255,0.08); }
+.ctp-set-btn { width: 100%; padding: 7px; background: var(--accent); color: #fff; border: none; border-radius: 7px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Outfit', sans-serif; }
+.ctp-set-btn:hover { background: var(--accent2); }
+
+/* ── EMOJI PICKER ── */
+.emoji-field-wrap { position: relative; }
+.emoji-trigger-btn {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  font-size: 16px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
+  z-index: 10;
+  line-height: 1;
+  transition: all 0.15s;
+  opacity: 0.7;
+}
+.emoji-trigger-btn:hover { opacity: 1; border-color: var(--blue); transform: scale(1.1); }
+.emoji-panel {
+  display: none;
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  width: 300px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  z-index: 999;
+  overflow: hidden;
+  animation: emojiIn 0.18s ease;
+}
+@keyframes emojiIn { from{opacity:0;transform:scale(0.93) translateY(8px)} to{opacity:1;transform:scale(1) translateY(0)} }
+.emoji-panel.open { display: block; }
+.emoji-panel-header {
+  padding: 8px 10px 4px;
+  font-size: 9px;
+  font-weight: 800;
+  color: var(--muted);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+}
+.emoji-recents {
+  padding: 6px 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  min-height: 36px;
+}
+.emoji-recents-label {
+  font-size: 9px;
+  color: var(--muted);
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  width: 100%;
+  margin-bottom: 2px;
+}
+.emoji-category-tabs {
+  display: flex;
+  overflow-x: auto;
+  padding: 4px 6px 0;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  scrollbar-width: none;
+}
+.emoji-category-tabs::-webkit-scrollbar { display: none; }
+.emoji-cat-btn {
+  padding: 4px 8px;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.15s;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+.emoji-cat-btn:hover, .emoji-cat-btn.active { background: var(--border2); opacity: 1; }
+.emoji-grid-wrap { padding: 6px 8px; max-height: 170px; overflow-y: auto; }
+.emoji-grid {
+  display: grid;
+  grid-template-columns: repeat(8, 1fr);
+  gap: 2px;
+}
+.emoji-btn {
+  font-size: 18px;
+  padding: 4px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s;
+  text-align: center;
+  line-height: 1.4;
+}
+.emoji-btn:hover { background: var(--border2); }
 </style>
 </head>
 <body>
@@ -916,7 +1077,11 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
           </div>
           <div class="field">
             <label>Date</label>
-            <div class="input-icon-wrap"><input type="date" id="fDate"><span class="pick-icon">📅</span></div>
+            <div class="input-icon-wrap">
+              <input type="date" id="fDate" oninput="syncDatePicker(this.value)">
+              <button type="button" class="pick-icon-btn" title="เปิดตัวเลือกวันที่" onclick="toggleDatePicker(event)">📅</button>
+            </div>
+            <div class="custom-date-picker" id="customDatePicker"></div>
           </div>
           <div class="field">
             <label>Time Slot</label>
@@ -953,7 +1118,11 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
           </div>
           <div class="field">
             <label>Time Entry</label>
-            <div class="input-icon-wrap"><input type="time" id="fTimeEntry"><span class="pick-icon">🕐</span></div>
+            <div class="input-icon-wrap">
+              <input type="time" id="fTimeEntry" oninput="syncTimePicker(this.value)">
+              <button type="button" class="pick-icon-btn" title="เปิดตัวเลือกเวลา" onclick="toggleTimePicker(event)">🕐</button>
+            </div>
+            <div class="custom-time-picker" id="customTimePicker"></div>
           </div>
           <div class="field">
             <label>Code</label>
@@ -1125,9 +1294,21 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
         </div>
 
         <!-- TIP / NOTE -->
-        <div class="field" style="margin-bottom:12px;">
+        <div class="field emoji-field-wrap" style="margin-bottom:12px;">
           <label>💡 Tip / Note</label>
-          <textarea id="fTip" placeholder="บันทึกสิ่งที่เรียนรู้, จุดที่ต้องระวัง..."></textarea>
+          <textarea id="fTip" placeholder="บันทึกสิ่งที่เรียนรู้, จุดที่ต้องระวัง..." style="padding-right:40px;"></textarea>
+          <button class="emoji-trigger-btn" id="emojiTriggerBtn" type="button" onclick="toggleEmojiPanel(event)" title="เลือกอีโมจิ">😊</button>
+          <div class="emoji-panel" id="emojiPanel">
+            <div class="emoji-panel-header">ใส่อีโมจิ</div>
+            <div class="emoji-recents" id="emojiRecents">
+              <div class="emoji-recents-label">ล่าสุด</div>
+              <span style="font-size:11px;color:var(--muted);padding:4px 0;" id="emojiRecentEmpty">ยังไม่มีประวัติ</span>
+            </div>
+            <div class="emoji-category-tabs" id="emojiCatTabs"></div>
+            <div class="emoji-grid-wrap">
+              <div class="emoji-grid" id="emojiGrid"></div>
+            </div>
+          </div>
         </div>
 
         <button class="save-btn" id="saveBtn" onclick="saveTrade()">💾 Save Trade</button>
@@ -2290,8 +2471,278 @@ function genDemo() {
 }
 
 // ════════════════════════════════════════
-// UI HELPERS
+// CUSTOM DATE PICKER
 // ════════════════════════════════════════
+let _dpYear = new Date().getFullYear();
+let _dpMonth = new Date().getMonth();
+
+function syncDatePicker(val) {
+  if (!val) return;
+  const d = new Date(val + 'T00:00:00');
+  _dpYear = d.getFullYear(); _dpMonth = d.getMonth();
+}
+
+function toggleDatePicker(e) {
+  e.stopPropagation();
+  const tp = document.getElementById('customTimePicker');
+  if (tp) tp.classList.remove('open');
+  closeEmojiPanel();
+  const dp = document.getElementById('customDatePicker');
+  if (!dp) return;
+  const isOpen = dp.classList.toggle('open');
+  if (isOpen) { renderDatePicker(); }
+}
+
+function renderDatePicker() {
+  const dp = document.getElementById('customDatePicker');
+  if (!dp) return;
+  const now = new Date();
+  const curVal = document.getElementById('fDate')?.value;
+  let selDay = -1, selMon = -1, selYear = -1;
+  if (curVal) { const d = new Date(curVal+'T00:00:00'); selDay=d.getDate(); selMon=d.getMonth(); selYear=d.getFullYear(); }
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const firstDay = new Date(_dpYear, _dpMonth, 1).getDay();
+  const daysInMonth = new Date(_dpYear, _dpMonth+1, 0).getDate();
+  const daysInPrev = new Date(_dpYear, _dpMonth, 0).getDate();
+  let daysHtml = '';
+  // prev month tail
+  for (let i = firstDay-1; i >= 0; i--) {
+    daysHtml += `<button class="cdp-day other-month" onclick="pickDate(${_dpYear},${_dpMonth-1},${daysInPrev-i})">${daysInPrev-i}</button>`;
+  }
+  // current month
+  for (let d = 1; d <= daysInMonth; d++) {
+    const isToday = d===now.getDate() && _dpMonth===now.getMonth() && _dpYear===now.getFullYear();
+    const isSel = d===selDay && _dpMonth===selMon && _dpYear===selYear;
+    const dow = new Date(_dpYear,_dpMonth,d).getDay();
+    const cls = ['cdp-day', isToday?'today':'', isSel?'selected':'', (dow===0||dow===6)?'weekend':''].filter(Boolean).join(' ');
+    daysHtml += `<button class="${cls}" onclick="pickDate(${_dpYear},${_dpMonth},${d})">${d}</button>`;
+  }
+  // next month fill
+  const total = firstDay + daysInMonth;
+  const remainder = total % 7 === 0 ? 0 : 7 - (total % 7);
+  for (let d = 1; d <= remainder; d++) {
+    daysHtml += `<button class="cdp-day other-month" onclick="pickDate(${_dpYear},${_dpMonth+1},${d})">${d}</button>`;
+  }
+  dp.innerHTML = `
+    <div class="cdp-header">
+      <button class="cdp-nav" onclick="dpNav(-1)">‹</button>
+      <span class="cdp-month-year">${months[_dpMonth]} ${_dpYear}</span>
+      <button class="cdp-nav" onclick="dpNav(1)">›</button>
+    </div>
+    <div class="cdp-dow-row">${['Su','Mo','Tu','We','Th','Fr','Sa'].map(d=>`<div class="cdp-dow">${d}</div>`).join('')}</div>
+    <div class="cdp-days">${daysHtml}</div>`;
+}
+
+function dpNav(dir) {
+  _dpMonth += dir;
+  if (_dpMonth > 11) { _dpMonth=0; _dpYear++; }
+  if (_dpMonth < 0)  { _dpMonth=11; _dpYear--; }
+  renderDatePicker();
+}
+
+function pickDate(y, m, d) {
+  if (m > 11) { m=0; y++; } if (m < 0) { m=11; y--; }
+  _dpYear = y; _dpMonth = m;
+  const pad = v => String(v).padStart(2,'0');
+  const val = `${y}-${pad(m+1)}-${pad(d)}`;
+  const el = document.getElementById('fDate');
+  if (el) el.value = val;
+  // update day-of-week
+  const dayEl = document.getElementById('fDay');
+  if (dayEl) { const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat']; const dw=days[new Date(y,m,d).getDay()]; if([...dayEl.options].find(o=>o.value===dw)) dayEl.value=dw; }
+  document.getElementById('customDatePicker')?.classList.remove('open');
+}
+
+// ════════════════════════════════════════
+// CUSTOM TIME PICKER
+// ════════════════════════════════════════
+let _tpH = new Date().getHours();
+let _tpM = new Date().getMinutes();
+
+function syncTimePicker(val) {
+  if (!val) return;
+  const [h,m] = val.split(':').map(Number);
+  _tpH = h; _tpM = m;
+}
+
+function toggleTimePicker(e) {
+  e.stopPropagation();
+  const dp = document.getElementById('customDatePicker');
+  if (dp) dp.classList.remove('open');
+  closeEmojiPanel();
+  const tp = document.getElementById('customTimePicker');
+  if (!tp) return;
+  const isOpen = tp.classList.toggle('open');
+  if (isOpen) {
+    const curVal = document.getElementById('fTimeEntry')?.value;
+    if (curVal) { const [h,m]=curVal.split(':').map(Number); _tpH=h; _tpM=m; }
+    renderTimePicker();
+  }
+}
+
+function renderTimePicker() {
+  const tp = document.getElementById('customTimePicker');
+  if (!tp) return;
+  const pad = v => String(v).padStart(2,'0');
+  const quickTimes = ['00:00','05:00','06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00','20:00','21:00','22:00','23:00'];
+  tp.innerHTML = `<div class="ctp-body">
+    <div class="ctp-title">🕐 เลือกเวลา</div>
+    <div class="ctp-row">
+      <div class="ctp-col">
+        <div class="ctp-label">ชั่วโมง</div>
+        <button class="ctp-btn" onclick="tpAdj('h',1)">▲</button>
+        <div class="ctp-val" id="tpHVal">${pad(_tpH)}</div>
+        <button class="ctp-btn" onclick="tpAdj('h',-1)">▼</button>
+      </div>
+      <div class="ctp-sep">:</div>
+      <div class="ctp-col">
+        <div class="ctp-label">นาที</div>
+        <button class="ctp-btn" onclick="tpAdj('m',1)">▲</button>
+        <div class="ctp-val" id="tpMVal">${pad(_tpM)}</div>
+        <button class="ctp-btn" onclick="tpAdj('m',-1)">▼</button>
+      </div>
+    </div>
+    <div class="ctp-quick">${quickTimes.map(t=>`<button class="ctp-quick-btn" onclick="tpSetQuick('${t}')">${t}</button>`).join('')}</div>
+    <button class="ctp-set-btn" onclick="tpConfirm()">✓ ยืนยันเวลา</button>
+  </div>`;
+}
+
+function tpAdj(part, dir) {
+  if (part==='h') { _tpH=(_tpH+dir+24)%24; }
+  else { _tpM=(_tpM+dir+60)%60; }
+  const pad = v=>String(v).padStart(2,'0');
+  const hEl=document.getElementById('tpHVal'); if(hEl) hEl.textContent=pad(_tpH);
+  const mEl=document.getElementById('tpMVal'); if(mEl) mEl.textContent=pad(_tpM);
+}
+
+function tpSetQuick(val) {
+  const [h,m]=val.split(':').map(Number); _tpH=h; _tpM=m;
+  tpConfirm();
+}
+
+function tpConfirm() {
+  const pad = v=>String(v).padStart(2,'0');
+  const el = document.getElementById('fTimeEntry');
+  if (el) el.value = `${pad(_tpH)}:${pad(_tpM)}`;
+  document.getElementById('customTimePicker')?.classList.remove('open');
+}
+
+// close all custom pickers on outside click
+document.addEventListener('click', function(e) {
+  const dp = document.getElementById('customDatePicker');
+  const tp = document.getElementById('customTimePicker');
+  const ep = document.getElementById('emojiPanel');
+  if (dp && dp.classList.contains('open') && !dp.closest('.field').contains(e.target)) dp.classList.remove('open');
+  if (tp && tp.classList.contains('open') && !tp.closest('.field').contains(e.target)) tp.classList.remove('open');
+  if (ep && ep.classList.contains('open') && !ep.closest('.emoji-field-wrap').contains(e.target)) ep.classList.remove('open');
+});
+
+// ════════════════════════════════════════
+// EMOJI PICKER
+// ════════════════════════════════════════
+const EMOJI_CATEGORIES = [
+  { icon:'😊', name:'Faces', emojis:['😀','😃','😄','😁','😆','😅','🤣','😂','🙂','😊','😇','🥰','😍','🤩','😘','😗','😙','😚','😋','😛','😜','🤪','😝','🤑','🤗','🤭','🤫','🤔','🤐','😐','😑','😶','😏','😒','🙄','😬','🤥','😔','😪','🤤','😴','😷','🤒','🤕','🤢','🤮','🤧','🥵','🥶','🥴','😵','🤯','🤠','🥳','😎','🤓','🧐','😕','😟','🙁','☹️','😮','😯','😲','😳','🥺','😦','😧','😨','😰','😥','😢','😭','😱','😖','😣','😞','😓','😩','😫','🥱','😤','😡','😠','🤬','😈','👿','💀','☠️','💩','🤡','👹','👺','👻','👽','👾','🤖'] },
+  { icon:'👍', name:'Hands', emojis:['👍','👎','👊','✊','🤛','🤜','🤞','✌️','🤟','🤘','👌','🤌','🤏','👈','👉','👆','🖕','👇','☝️','👋','🤚','🖐️','✋','🖖','👏','🙌','🤲','🤝','🙏','✍️','💅','🤳','💪','🦾','🦿','🦵','🦶','👂','🦻','👃','🫀','🫁','🧠','🦷','🦴','👀','👁️','👅','👄'] },
+  { icon:'📈', name:'Charts', emojis:['📈','📉','📊','💹','💰','💵','💴','💶','💷','💸','💳','🏦','💱','💲','🤑','💎','🏆','🥇','🥈','🥉','🎯','🎲','🎰','🃏','🎴','♟️','🎮','🕹️','🎳','⚡','🔥','❄️','🌊','🌪️','💥','✨','🌟','⭐','🌙','☀️','🌈','☁️','⛈️','🌧️','🌨️','❄️'] },
+  { icon:'✅', name:'Marks', emojis:['✅','❌','❎','✔️','☑️','⭕','❓','❔','❕','❗','‼️','⁉️','🔴','🟠','🟡','🟢','🔵','🟣','⚫','⚪','🟤','🔺','🔻','🔷','🔶','🔹','🔸','💠','🔘','🔲','🔳','▪️','▫️','◾','◽','◼️','◻️','⬛','⬜','🔑','🗝️','🔒','🔓','⚠️','🚨','🚫','⛔','🛑','🚧'] },
+  { icon:'💡', name:'Objects', emojis:['💡','🔦','🕯️','💰','📌','📍','🗂️','📋','📄','📝','✏️','🖊️','🖋️','✒️','📏','📐','✂️','🗃️','🗄️','🗑️','🔧','🔨','⚙️','🛠️','🔩','🔬','🔭','💊','🩺','🩹','🧪','🧫','🧬','🩻','💉','🧲','🔋','💾','💿','📀','🖥️','💻','⌨️','🖱️','📱','📞','📟','📠'] },
+  { icon:'🌱', name:'Nature', emojis:['🌱','🌿','🍀','🍁','🍂','🍃','🌾','🌵','🎄','🌲','🌳','🌴','🌸','🌺','🌻','🌼','💐','🌷','🥀','🍄','🌰','🐝','🐛','🦋','🐌','🐞','🐜','🦗','🕷️','🦂','🐢','🐍','🦎','🦖','🦕','🐊','🦓','🦍','🦧','🐘','🦛','🦏','🐪','🐫','🦒','🦘','🐃','🐂','🐄','🐎','🐖','🐏','🐑','🦙'] },
+];
+
+let emojiRecentList = JSON.parse(localStorage.getItem('emojiRecents') || '[]');
+let currentEmojiCat = 0;
+
+function initEmojiPicker() {
+  const tabsEl = document.getElementById('emojiCatTabs');
+  if (!tabsEl || tabsEl.children.length > 0) return; // already inited
+  tabsEl.innerHTML = EMOJI_CATEGORIES.map((c,i) =>
+    `<button class="emoji-cat-btn${i===0?' active':''}" title="${c.name}" onclick="switchEmojiCat(${i},this)">${c.icon}</button>`
+  ).join('');
+  renderEmojiGrid(0);
+  renderEmojiRecents();
+}
+
+function closeEmojiPanel() {
+  document.getElementById('emojiPanel')?.classList.remove('open');
+}
+
+function toggleEmojiPanel(e) {
+  e.stopPropagation();
+  document.getElementById('customDatePicker')?.classList.remove('open');
+  document.getElementById('customTimePicker')?.classList.remove('open');
+  const panel = document.getElementById('emojiPanel');
+  if (!panel) return;
+  const isOpen = panel.classList.toggle('open');
+  if (isOpen) {
+    const tabsEl = document.getElementById('emojiCatTabs');
+    if (tabsEl && tabsEl.children.length === 0) {
+      tabsEl.innerHTML = EMOJI_CATEGORIES.map((c,i) =>
+        '<button class="emoji-cat-btn' + (i===0?' active':'') + '" title="' + c.name + '" onclick="switchEmojiCat(' + i + ',this)">' + c.icon + '</button>'
+      ).join('');
+    }
+    renderEmojiGrid(currentEmojiCat);
+    renderEmojiRecents();
+  }
+}
+
+function switchEmojiCat(idx, btn) {
+  currentEmojiCat = idx;
+  document.querySelectorAll('.emoji-cat-btn').forEach((b,i) => b.classList.toggle('active', i===idx));
+  renderEmojiGrid(idx);
+}
+
+function renderEmojiGrid(idx) {
+  const grid = document.getElementById('emojiGrid');
+  if (!grid) return;
+  grid.innerHTML = EMOJI_CATEGORIES[idx].emojis.map(em =>
+    `<button class="emoji-btn" onclick="insertEmoji('${em}')" title="${em}">${em}</button>`
+  ).join('');
+}
+
+function renderEmojiRecents() {
+  const wrap = document.getElementById('emojiRecents');
+  const empty = document.getElementById('emojiRecentEmpty');
+  if (!wrap) return;
+  // Remove old emoji buttons (keep label + empty msg)
+  wrap.querySelectorAll('.emoji-btn').forEach(b => b.remove());
+  if (emojiRecentList.length === 0) {
+    if (empty) empty.style.display = 'inline';
+  } else {
+    if (empty) empty.style.display = 'none';
+    emojiRecentList.slice(0, 16).forEach(em => {
+      const btn = document.createElement('button');
+      btn.className = 'emoji-btn';
+      btn.textContent = em;
+      btn.title = em;
+      btn.onclick = () => insertEmoji(em);
+      wrap.appendChild(btn);
+    });
+  }
+}
+
+function insertEmoji(em) {
+  const ta = document.getElementById('fTip');
+  if (!ta) return;
+  const start = ta.selectionStart;
+  const end = ta.selectionEnd;
+  const val = ta.value;
+  ta.value = val.slice(0, start) + em + val.slice(end);
+  ta.selectionStart = ta.selectionEnd = start + em.length;
+  ta.focus();
+  // Add to recents
+  emojiRecentList = [em, ...emojiRecentList.filter(e => e !== em)].slice(0, 16);
+  localStorage.setItem('emojiRecents', JSON.stringify(emojiRecentList));
+  renderEmojiRecents();
+}
+
+// Init emoji picker when modal opens
+const _origOpenModal = openModal;
+function openModal() {
+  _origOpenModal();
+  setTimeout(initEmojiPicker, 50);
+}
+
+
 function showEmpty() { document.getElementById('noPortMsg').style.display='flex'; document.getElementById('dashMain').style.display='none'; }
 function showDash()  { document.getElementById('noPortMsg').style.display='none'; document.getElementById('dashMain').style.display='block'; }
 function setConn(ok) {
@@ -2315,9 +2766,14 @@ function setTodayDate() {
     if ([...dayEl.options].find(o => o.value===d)) dayEl.value = d;
   }
   const dateEl = document.getElementById('fDate');
-  if (dateEl) dateEl.value = dateStr;
+  if (dateEl) { dateEl.value = dateStr; }
   const timeEl = document.getElementById('fTimeEntry');
-  if (timeEl) timeEl.value = timeStr;
+  if (timeEl) { timeEl.value = timeStr; }
+  // sync picker state
+  if (typeof _dpYear !== 'undefined') {
+    _dpYear = n.getFullYear(); _dpMonth = n.getMonth();
+    _tpH = n.getHours(); _tpM = n.getMinutes();
+  }
 }
 
 function resetForm() {
