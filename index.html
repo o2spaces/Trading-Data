@@ -1723,6 +1723,26 @@ function getTradeDate(t) {
 }
 
 // ════════════════════════════════════════
+// TIME ENTRY HELPER
+// Google Sheets อาจส่ง timeEntry มาเป็น ISO string เช่น "1899-12-30T00:22:56.000Z"
+// แทนที่จะเป็น "HH:MM" — ฟังก์ชันนี้แปลงให้เป็น "HH:MM" เสมอ
+// ════════════════════════════════════════
+function parseTimeEntry(v) {
+  if (!v) return '00:00';
+  const s = String(v);
+  // ถ้าเป็น HH:MM หรือ H:MM อยู่แล้ว → คืนเลย
+  if (/^\d{1,2}:\d{2}$/.test(s)) return s.padStart(5, '0');
+  // ถ้าเป็น ISO string (1899-12-30T06:15:00.000Z) → ดึงเวลา UTC
+  if (s.includes('T')) {
+    const d = new Date(s);
+    if (!isNaN(d)) {
+      return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+    }
+  }
+  return '00:00';
+}
+
+// ════════════════════════════════════════
 // RENDER DASHBOARD
 // ════════════════════════════════════════
 function renderDash(portId) {
@@ -2080,9 +2100,8 @@ function renderOrdersTable() {
   else if (currentSortTab === 'asset') trades.sort((a,b) => (a.asset||'').localeCompare(b.asset||''));
   else trades.sort((a,b) => {
     const dt = t => {
-      const d = getTradeDate(t);
-      const tm = (t.timeEntry && /^\d{1,2}:\d{2}/.test(String(t.timeEntry)))
-        ? String(t.timeEntry).padStart(5,'0') : '00:00';
+      const d  = getTradeDate(t);
+      const tm = parseTimeEntry(t.timeEntry);
       return d === '—' ? '0000-00-00T00:00' : d + 'T' + tm;
     };
     return dt(b).localeCompare(dt(a));
@@ -2119,7 +2138,7 @@ function renderOrdersTable() {
       const note    = t.tip || t.pictureUrl ? `<a href="${t.pictureUrl||'#'}" target="_blank" style="color:var(--muted2);font-size:10px;text-decoration:none;" title="${t.tip||''}">🔗 ${(t.tip||t.pictureUrl||'').slice(0,18)}…</a>` : '—';
       return `<tr>
         <td class="ts-td-num">${idx}</td>
-        <td class="ts-td-date">${getTradeDate(t)}${t.timeEntry ? `<br><span style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">${t.timeEntry}</span>` : ''}</td>
+        <td class="ts-td-date">${getTradeDate(t)}<br><span style="font-size:10px;color:var(--muted);font-family:'Space Mono',monospace;">${parseTimeEntry(t.timeEntry)}</span></td>
         <td class="ts-td-asset">${t.asset||'—'}</td>
         <td>${t.position?`<span class="ts-pos-pill ${posCls}">${t.position}</span>`:'—'}</td>
         <td>${t.session?`<span class="ts-sess-pill ${sessCls(t.session)}">${t.session}</span>`:'—'}</td>

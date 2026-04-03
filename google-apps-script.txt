@@ -90,7 +90,7 @@ function handleGetTrades(sheetName) {
     timeSlot    : row[4]  || '',
     asset       : row[5]  || '',   // F: Asset
     duration    : +row[6] || 0,    // G
-    timeEntry   : row[7]  || '',   // H
+    timeEntry   : formatTime(row[7]),  // H
     code        : row[8]  || '',   // I
     cls         : row[9]  || '',   // J
     mode        : row[10] || '',   // K
@@ -376,6 +376,17 @@ function getOrCreateSheet(name) {
 }
 
 // ─── Helpers ─────────────────────────────────────────────────
+function formatTime(v) {
+  if (!v) return '';
+  // ถ้าเป็น Date object จาก Google Sheets → แปลงเป็น HH:MM
+  if (v instanceof Date) {
+    const tz = SpreadsheetApp.getActiveSpreadsheet().getSpreadsheetTimeZone();
+    return Utilities.formatDate(v, tz, 'HH:mm');
+  }
+  // ถ้าเป็น string "HH:MM" อยู่แล้ว → คืนเลย
+  return String(v);
+}
+
 function formatDate(d) {
   if (!d) return '';
   if (!(d instanceof Date)) {
