@@ -1722,16 +1722,6 @@ function getTradeDate(t) {
   return '—';
 }
 
-// รวม date + timeEntry (HH:MM) เป็น "YYYY-MM-DDTHH:MM" สำหรับ sort ที่แม่นยำ
-function getTradeDatetime(t) {
-  const dateStr = getTradeDate(t);
-  if (dateStr === '—') return '0000-00-00T00:00';
-  const time = (t.timeEntry && /^\d{1,2}:\d{2}/.test(String(t.timeEntry)))
-    ? String(t.timeEntry).padStart(5, '0')
-    : '00:00';
-  return dateStr + 'T' + time;
-}
-
 // ════════════════════════════════════════
 // RENDER DASHBOARD
 // ════════════════════════════════════════
@@ -2088,7 +2078,15 @@ function renderOrdersTable() {
   let trades = [...currentFilteredTrades];
   if (currentSortTab === 'pnl') trades.sort((a,b) => (parseFloat(b.pnl)||0) - (parseFloat(a.pnl)||0));
   else if (currentSortTab === 'asset') trades.sort((a,b) => (a.asset||'').localeCompare(b.asset||''));
-  else trades.sort((a,b) => getTradeDatetime(b).localeCompare(getTradeDatetime(a)));
+  else trades.sort((a,b) => {
+    const dt = t => {
+      const d = getTradeDate(t);
+      const tm = (t.timeEntry && /^\d{1,2}:\d{2}/.test(String(t.timeEntry)))
+        ? String(t.timeEntry).padStart(5,'0') : '00:00';
+      return d === '—' ? '0000-00-00T00:00' : d + 'T' + tm;
+    };
+    return dt(b).localeCompare(dt(a));
+  });
 
   const total = trades.length;
   const totalPages = Math.max(1, Math.ceil(total / ORDERS_PER_PAGE));
