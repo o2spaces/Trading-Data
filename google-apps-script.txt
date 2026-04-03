@@ -60,6 +60,7 @@ function doGet(e) {
   const sheet  = e.parameter.sheet  || '';
   if (action === 'getTrades')  return handleGetTrades(sheet);
   if (action === 'listSheets') return handleListSheets();
+  if (action === 'getShare')   return handleGetShare(e.parameter.id || '');
   return respond({ success: false, error: 'Unknown action: ' + action });
 }
 
@@ -72,6 +73,7 @@ function doPost(e) {
     if (action === 'updateTrade') return handleUpdateTrade(body.trade, body.sheet || '');
     if (action === 'deleteTrade') return handleDeleteTrade(body.id, body.sheet || '');
     if (action === 'renameSheet') return handleRenameSheet(body.oldName, body.newName);
+    if (action === 'saveShare')   return handleSaveShare(body.payload || '');
     return respond({ success: false, error: 'Unknown action: ' + action });
   } catch(err) {
     return respond({ success: false, error: err.message });
@@ -408,6 +410,37 @@ function handleUpdateTrade(trade, sheetName) {
   sheet.getRange(rowIndex, 22, 1, 12).setBackground('#0d1a1a');
 
   return respond({ success: true });
+}
+
+// ─── SHARE SNAPSHOT ──────────────────────────────────────────
+const SHARE_SHEET = '_shares';
+
+function handleSaveShare(payload) {
+  if (!payload) return respond({ success: false, error: 'No payload' });
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  let sh = ss.getSheetByName(SHARE_SHEET);
+  if (!sh) {
+    sh = ss.insertSheet(SHARE_SHEET);
+    sh.hideSheet();
+    sh.getRange(1,1,1,3).setValues([['ID','CreatedAt','Payload']]);
+  }
+  const chars = 'abcdefghijkmnpqrstuvwxyz23456789';
+  let id = '';
+  for (let i = 0; i < 8; i++) id += chars[Math.floor(Math.random() * chars.length)];
+  sh.appendRow([id, new Date().toISOString(), payload]);
+  return respond({ success: true, id });
+}
+
+function handleGetShare(id) {
+  if (!id) return respond({ success: false, error: 'No ID' });
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sh = ss.getSheetByName(SHARE_SHEET);
+  if (!sh) return respond({ success: false, error: 'No shares found' });
+  const data = sh.getDataRange().getValues();
+  for (let i = 1; i < data.length; i++) {
+    if (String(data[i][0]) === id) return respond({ success: true, payload: data[i][2] });
+  }
+  return respond({ success: false, error: 'Share not found' });
 }
 
 // ─── RENAME SHEET ────────────────────────────────────────────
