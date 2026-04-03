@@ -3244,7 +3244,11 @@ function editCalcPnl() {
 }
 
 async function saveEditTrade() {
-  if (!editingTrade || !editingPortId) return;
+  if (!editingTrade || !editingPortId) { toast('⚠️ ไม่พบข้อมูล Trade', 'error'); return; }
+
+  const tradeId = editingTrade.id;  // เก็บ id ไว้ก่อน ป้องกัน null
+  if (!tradeId) { toast('⚠️ Trade ไม่มี ID', 'error'); return; }
+
   const result = document.getElementById('eFResult').value;
   if (!result) { toast('⚠️ กรุณาเลือก Result', 'error'); return; }
   const risk = parseFloat(document.getElementById('eFRisk').value) || 0;
@@ -3256,6 +3260,7 @@ async function saveEditTrade() {
 
   const updated = {
     ...editingTrade,
+    id         : tradeId,   // ← ต้องกำหนดใหม่ชัดเจน ป้องกัน spread ทับ
     day        : document.getElementById('eFDay').value,
     session    : document.getElementById('eFSession').value,
     date       : document.getElementById('eFDate').value,
@@ -3285,40 +3290,100 @@ async function saveEditTrade() {
     lots       : editingTrade.lots || 0,
   };
 
-  // Update local state immediately
-  const idx = allTrades[editingPortId].findIndex(x => String(x.id) === String(editingTrade.id));
-  if (idx !== -1) allTrades[editingPortId][idx] = updated;
+  // ── อัพเดต local state ──
+  const idx = (allTrades[editingPortId] || []).findIndex(x => String(x.id) === String(tradeId));
+  if (idx !== -1) {
+    allTrades[editingPortId][idx] = updated;
+    // recalculate ค่า Balance/ConLoss/DD ทุก trade ใน local ด้วย
+    recalculateLocalTrades(editingPortId);
+  }
   localStorage.setItem('demoTrades', JSON.stringify(allTrades));
-  renderDash(editingPortId);
+
+  const savedPortId = editingPortId; // เก็บไว้ก่อน closeModal clear ค่า
   closeEditModal();
+  renderDash(savedPortId);
   toast('✅ แก้ไขแล้ว — กำลังซิงค์ Sheet...', 'success');
 
   if (!SCRIPT_URL || !port) return;
 
-  // Sync to Sheet
+  // ── Sync to Sheet ──
   try {
     const res  = await fetch(SCRIPT_URL, {
       method: 'POST', headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ action: 'updateTrade', trade: { ...updated, id: editingTrade.id }, sheet: port.name })
+      body: JSON.stringify({ action: 'updateTrade', trade: updated, sheet: port.name })
     });
     const data = await res.json();
-    if (data.success) toast('☁️ อัพเดต Sheet เรียบร้อย', 'success');
-    else throw new Error(data.error);
+    if (data.success) {
+      // โหลดข้อมูลใหม่จาก Sheet เพื่อให้ Balance/DD ถูกต้องทั้งหมด
+      await loadPort(savedPortId);
+      toast('☁️ อัพเดต Sheet เรียบร้อย', 'success');
+    } else throw new Error(data.error);
   } catch(e) { toast('⚠️ ซิงค์ไม่ได้: ' + e.message, 'error'); }
+}
+
+// ── recalculate Balance / ConLoss / PnL ทุก trade ใน local state ──
+function recalculateLocalTrades(portId) {
+  const port   = portfolios.find(p => p.id === portId);
+  const trades = allTrades[portId];
+  if (!trades || !port) return;
+
+  const INIT = port.initBalance || 10000;
+  // เรียงตาม date+time ก่อน recalc
+  const sorted = [...trades].sort((a, b) => {
+    const da = getTradeDate(a) + 'T' + (parseTimeEntry(a.timeEntry) || '00:00');
+    const db = getTradeDate(b) + 'T' + (parseTimeEntry(b.timeEntry) || '00:00');
+    return da.localeCompare(db);
+  });
+
+  let runBal = INIT, peak = INIT, conLoss = 0, sumConLoss = 0, sumDDLoss = 0;
+
+  sorted.forEach(t => {
+    const result = t.result || '';
+    const risk   = parseFloat(t.risk) || 0;
+    const rr     = parseFloat(t.rr)   || 0;
+
+    // คำนวณ PnL ใหม่
+    const pnl = result === 'TP'   ? risk * rr
+              : result === 'Loss' ? -risk : 0;
+    t.pnl       = parseFloat(pnl.toFixed(2));
+    t.tp_dollar = result === 'TP'   ? t.pnl : 0;
+    t.sl_dollar = result === 'Loss' ? t.pnl : 0;
+
+    runBal += pnl;
+    t.balance = parseFloat(runBal.toFixed(2));
+
+    if (runBal > peak) peak = runBal;
+    t.ddPct = peak > 0 ? ((peak - runBal) / peak * 100).toFixed(2) + '%' : '0%';
+
+    t.tpPct = INIT > 0 && pnl !== 0 ? (pnl / INIT * 100).toFixed(2) + '%' : '—';
+
+    if (result === 'Loss') { conLoss++; sumConLoss += Math.abs(pnl); }
+    else { conLoss = 0; sumConLoss = 0; }
+    if (pnl < 0) sumDDLoss += Math.abs(pnl);
+
+    t.conLoss    = conLoss;
+    t.sumConLoss = parseFloat(sumConLoss.toFixed(2));
+    t.sumDDLoss  = parseFloat(sumDDLoss.toFixed(2));
+  });
+
+  // เขียนกลับ allTrades (ยัง order เดิม ไม่ต้อง sort ใหม่)
+  allTrades[portId] = trades.map(t => sorted.find(s => String(s.id) === String(t.id)) || t);
 }
 
 // ════════════════════════════════════════
 // DELETE TRADE
 // ════════════════════════════════════════
 async function deleteTrade(tradeId, portId) {
+  if (!tradeId) { toast('⚠️ ไม่พบ Trade ID', 'error'); return; }
   const trades = allTrades[portId] || [];
   const t = trades.find(x => String(x.id) === String(tradeId));
   if (!t) { toast('⚠️ ไม่พบ Trade', 'error'); return; }
   const date = getTradeDate(t);
   if (!confirm(`ลบ Trade วันที่ ${date} (${t.asset||'?'} | ${t.result||'?'}) ?\n\nข้อมูลจะถูกลบถาวรทั้งใน App และ Google Sheet`)) return;
 
-  // Remove from local
+  // ลบออกจาก local แล้ว recalculate
   allTrades[portId] = allTrades[portId].filter(x => String(x.id) !== String(tradeId));
+  recalculateLocalTrades(portId);
   localStorage.setItem('demoTrades', JSON.stringify(allTrades));
   renderDash(portId);
   toast('🗑 ลบ Trade แล้ว — กำลังซิงค์ Sheet...', 'success');
@@ -3334,8 +3399,10 @@ async function deleteTrade(tradeId, portId) {
       body: JSON.stringify({ action: 'deleteTrade', id: tradeId, sheet: port.name })
     });
     const data = await res.json();
-    if (data.success) toast('☁️ ลบออกจาก Sheet แล้ว', 'success');
-    else throw new Error(data.error);
+    if (data.success) {
+      await loadPort(portId); // reload ข้อมูลจาก Sheet เพื่อให้ Balance ถูกต้อง
+      toast('☁️ ลบออกจาก Sheet แล้ว', 'success');
+    } else throw new Error(data.error);
   } catch(e) { toast('⚠️ ลบ Sheet ไม่ได้: ' + e.message, 'error'); }
 }
 
