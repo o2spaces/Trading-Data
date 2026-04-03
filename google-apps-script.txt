@@ -69,6 +69,8 @@ function doPost(e) {
     const body   = JSON.parse(e.postData.contents);
     const action = body.action || '';
     if (action === 'addTrade')    return handleAddTrade(body.trade, body.sheet || '');
+    if (action === 'updateTrade') return handleUpdateTrade(body.trade, body.sheet || '');
+    if (action === 'deleteTrade') return handleDeleteTrade(body.id, body.sheet || '');
     if (action === 'renameSheet') return handleRenameSheet(body.oldName, body.newName);
     return respond({ success: false, error: 'Unknown action: ' + action });
   } catch(err) {
@@ -285,6 +287,127 @@ if (trade.date) {
   sheet.getRange(lr, 22, 1, 12).setBackground('#0d1a1a');
 
   return respond({ success: true, id });
+}
+
+// ─── DELETE TRADE ────────────────────────────────────────────
+function handleDeleteTrade(tradeId, sheetName) {
+  if (!tradeId) return respond({ success: false, error: 'ต้องระบุ id' });
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) return respond({ success: false, error: 'ไม่พบ Sheet: ' + sheetName });
+  const data = sheet.getDataRange().getValues();
+  for (let r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === String(tradeId)) {
+      sheet.deleteRow(r + 1);
+      return respond({ success: true });
+    }
+  }
+  return respond({ success: false, error: 'ไม่พบ trade id: ' + tradeId });
+}
+
+// ─── UPDATE TRADE ─────────────────────────────────────────────
+function handleUpdateTrade(trade, sheetName) {
+  if (!trade || !trade.id) return respond({ success: false, error: 'ต้องระบุ trade.id' });
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
+  if (!sheet) return respond({ success: false, error: 'ไม่พบ Sheet: ' + sheetName });
+  const data = sheet.getDataRange().getValues();
+  let rowIndex = -1;
+  for (let r = 1; r < data.length; r++) {
+    if (String(data[r][0]) === String(trade.id)) { rowIndex = r + 1; break; }
+  }
+  if (rowIndex === -1) return respond({ success: false, error: 'ไม่พบ trade id: ' + trade.id });
+
+  const entry  = parseFloat(trade.priceEntry)  || 0;
+  const target = parseFloat(trade.priceTarget) || 0;
+  const sl     = parseFloat(trade.priceSL)     || 0;
+  const risk   = parseFloat(trade.risk)        || 0;
+  const result = trade.result || '';
+  const asset  = trade.asset  || '';
+  const slDist = parseFloat(trade.slPoints) || 0;
+  const lots   = parseFloat(trade.lots)     || 0;
+
+  const position = entry > 0 && sl > 0 ? (entry > sl ? 'Buy' : 'Sell') : (trade.position || '');
+  const point    = entry > 0 && target > 0 ? Math.abs(target - entry) : 0;
+  const riskPts  = entry > 0 && sl > 0     ? Math.abs(entry - sl) : 0;
+  const rr       = riskPts > 0 ? point / riskPts : (parseFloat(trade.rr) || 0);
+  const pnl      = result === 'TP'   ? risk * rr
+                 : result === 'Loss' ? -risk : 0;
+  const tp_dollar = result === 'TP'   ? pnl : 0;
+  const sl_dollar = result === 'Loss' ? pnl : 0;
+
+  let initBalance = 10000;
+  try {
+    const note = sheet.getRange('A1').getNote();
+    if (note && !isNaN(parseFloat(note))) initBalance = parseFloat(note);
+  } catch(e) {}
+
+  let tradeDate = new Date();
+  if (trade.date) {
+    const parts = trade.date.split('-');
+    if (parts.length === 3) tradeDate = new Date(+parts[0], +parts[1]-1, +parts[2]);
+    else tradeDate = new Date(trade.date);
+  }
+
+  const tpPct = initBalance > 0 && pnl !== 0 ? (pnl / initBalance * 100).toFixed(2) + '%' : '—';
+
+  const rowVals = [
+    trade.id,              // A: ID
+    tradeDate,             // B: Date
+    trade.day        || '',// C: Day
+    trade.session    || '',// D: Session
+    trade.timeSlot   || '',// E: Time Slot
+    asset,                 // F: Asset
+    trade.duration   || 0, // G: Duration
+    trade.timeEntry  || '',// H: Time Entry
+    trade.code       || '',// I: Code
+    trade.cls        || '',// J: Class
+    trade.mode       || '',// K: Mode
+    trade.model      || '',// L: Model
+    trade.zone       || '',// M: Zone
+    entry,                 // N: Entry
+    target,                // O: Target
+    sl,                    // P: Stop Loss
+    result,                // Q: Result
+    risk,                  // R: Risk ($)
+    slDist,                // S: SL Distance
+    lots,                  // T: Lots
+    trade.maxRR      || 0, // U: Max RR
+    position,              // V: Position
+    parseFloat(point.toFixed(4)),     // W: Point
+    parseFloat(rr.toFixed(4)),        // X: RR
+    parseFloat(pnl.toFixed(2)),       // Y: PnL ($)
+    parseFloat(tp_dollar.toFixed(2)), // Z: TP ($)
+    parseFloat(sl_dollar.toFixed(2)), // AA: SL ($)
+    tpPct,                            // AB: TP%
+    data[rowIndex-1][28] || '',       // AC: DD Loss% (keep existing)
+    data[rowIndex-1][29] || 0,        // AD: Con Loss (keep existing)
+    data[rowIndex-1][30] || 0,        // AE: Sum Con Loss$ (keep existing)
+    data[rowIndex-1][31] || 0,        // AF: Sum DD Loss$ (keep existing)
+    data[rowIndex-1][32] || 0,        // AG: Balance (keep existing)
+    trade.pictureUrl || '',           // AH: Picture URL
+    trade.tip        || '',           // AI: Tip / Note
+    data[rowIndex-1][35] || ''        // AJ: Created At (keep original)
+  ];
+
+  sheet.getRange(rowIndex, 1, 1, TOTAL_COLS).setValues([rowVals]);
+
+  // Re-format the row
+  sheet.getRange(rowIndex, 2).setNumberFormat('dd/mm/yyyy');
+  [14,15,16,18,19,20,21,23,24,25,26,27,33].forEach(col => {
+    sheet.getRange(rowIndex, col).setNumberFormat('#,##0.00');
+  });
+  const colMap = { 'TP':['#0d4f1e','#3fb950'], 'Loss':['#4f0d0d','#f85149'], 'Miss':['#3a3a0d','#ffd166'] };
+  const resultCell = sheet.getRange(rowIndex, 17);
+  if (colMap[result]) resultCell.setBackground(colMap[result][0]).setFontColor(colMap[result][1]);
+  const pnlCell = sheet.getRange(rowIndex, 25);
+  if (pnl > 0) pnlCell.setFontColor('#3fb950');
+  else if (pnl < 0) pnlCell.setFontColor('#f85149');
+  const posCell = sheet.getRange(rowIndex, 22);
+  if (position === 'Buy')  posCell.setFontColor('#3fb950');
+  if (position === 'Sell') posCell.setFontColor('#f85149');
+  sheet.getRange(rowIndex, 6).setFontColor('#39d0d8');
+  sheet.getRange(rowIndex, 22, 1, 12).setBackground('#0d1a1a');
+
+  return respond({ success: true });
 }
 
 // ─── RENAME SHEET ────────────────────────────────────────────
