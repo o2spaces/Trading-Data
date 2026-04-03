@@ -651,6 +651,23 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
 }
 .emoji-btn:hover { background: var(--border2); }
 
+/* ── SHARE BUTTON ── */
+.share-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:transparent;color:var(--green);border:1px solid rgba(0,217,126,0.35);border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;letter-spacing:0.3px;}
+.share-btn:hover{background:rgba(0,217,126,0.1);transform:translateY(-1px);box-shadow:0 4px 16px rgba(0,217,126,0.2);}
+/* ── SHARE MODAL ── */
+.share-modal{background:var(--card);border:1px solid var(--border3);border-radius:16px;width:520px;max-width:96vw;animation:modalIn 0.22s ease;}
+.share-modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 20px;border-bottom:1px solid var(--border2);background:var(--card2);border-radius:16px 16px 0 0;}
+.share-modal-body{padding:20px;}
+.share-url-box{background:var(--bg);border:1px solid var(--border2);border-radius:10px;padding:12px 14px;font-size:11px;color:var(--muted2);word-break:break-all;line-height:1.6;font-family:'Space Mono',monospace;max-height:90px;overflow-y:auto;margin:12px 0;}
+.share-copy-btn{width:100%;padding:10px;background:var(--green);color:#000;border:none;border-radius:8px;font-size:13px;font-weight:800;cursor:pointer;font-family:'Outfit',sans-serif;transition:all 0.2s;}
+.share-copy-btn:hover{background:var(--green2);}
+.share-info{display:flex;align-items:flex-start;gap:8px;background:rgba(61,158,255,0.06);border:1px solid rgba(61,158,255,0.2);border-radius:8px;padding:10px 12px;margin-top:12px;font-size:11px;color:var(--muted2);line-height:1.6;}
+.share-port-select{width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:9px 11px;color:var(--text);font-size:13px;outline:none;font-family:'Outfit',sans-serif;margin-bottom:4px;}
+.share-port-select:focus{border-color:var(--accent);}
+/* ── VIEW-ONLY BANNER ── */
+.view-only-banner{display:none;position:fixed;top:0;left:0;right:0;z-index:999;background:linear-gradient(90deg,var(--green2),var(--accent));padding:8px 20px;text-align:center;font-size:12px;font-weight:700;color:#fff;letter-spacing:0.5px;}
+.view-only-banner.show{display:block;}
+
 /* ── TRADE ACTION BUTTONS ── */
 .trade-action-btn {
   display: inline-flex; align-items: center; justify-content: center;
@@ -664,6 +681,9 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
 </style>
 </head>
 <body>
+
+<!-- VIEW-ONLY BANNER -->
+<div class="view-only-banner" id="viewOnlyBanner">👁 View-Only Mode — คุณกำลังดู Dashboard ที่แชร์มา (ไม่สามารถแก้ไขได้)</div>
 
 <!-- LOADING -->
 <div class="loading-overlay" id="loadingOverlay">
@@ -682,6 +702,7 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
   </div>
   <div class="header-right">
     <div class="conn-status"><div class="conn-dot" id="connDot"></div><span id="connText">Demo Mode</span></div>
+    <button class="share-btn" id="shareBtnHeader" onclick="openShareModal()">⬆ แชร์ Dashboard</button>
     <button class="add-btn" onclick="openModal()">＋ Add Trade / Settings</button>
   </div>
 </div>
@@ -1369,6 +1390,39 @@ table.ts-tbl{width:100%;border-collapse:collapse;font-size:11px;}
   </div>
 </div>
 
+<!-- SHARE MODAL -->
+<div class="modal-overlay" id="shareOverlay" onclick="if(event.target===this)closeShareModal()">
+  <div class="share-modal">
+    <div class="share-modal-header">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-size:18px;">⬆</span>
+        <div>
+          <div style="font-size:14px;font-weight:800;color:var(--text);">แชร์ Dashboard</div>
+          <div style="font-size:10px;color:var(--muted);margin-top:1px;">สร้าง Link สั้นๆ ให้คนอื่นดู Dashboard ของคุณ</div>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeShareModal()">✕</button>
+    </div>
+    <div class="share-modal-body">
+      <div class="field" style="margin-bottom:14px;">
+        <label style="display:block;font-size:10px;color:var(--muted2);margin-bottom:6px;font-weight:700;letter-spacing:0.5px;text-transform:uppercase;">เลือกพอร์ตที่ต้องการแชร์</label>
+        <select class="share-port-select" id="sharePortSelect"></select>
+      </div>
+      <button class="share-copy-btn" id="shareGenBtn" onclick="generateShareLink()">🔗 สร้าง Link</button>
+      <div id="shareErrBox" style="display:none;margin-top:10px;background:rgba(255,71,87,0.08);border:1px solid rgba(255,71,87,0.3);border-radius:8px;padding:10px 12px;font-size:11px;color:var(--red);line-height:1.6;"></div>
+      <div class="share-url-box" id="shareUrlBox" style="display:none;"></div>
+      <button class="share-copy-btn" id="shareCopyBtn" onclick="copyShareLink()" style="display:none;">📋 คัดลอก Link</button>
+      <div class="share-info" style="margin-top:12px;">
+        <span style="font-size:16px;flex-shrink:0;">ℹ️</span>
+        <div>
+          <span>ผู้รับจะเห็น Dashboard แบบ <strong style="color:var(--cyan);">View-Only</strong> ไม่สามารถแก้ไขได้</span><br>
+          <span style="color:var(--muted);font-size:10px;margin-top:3px;display:block;">⚠️ ต้องตั้งค่า Script URL และ <strong>Re-deploy Google Apps Script ใหม่</strong> (New Deployment) ก่อนใช้งาน</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════════ MODAL: EDIT TRADE ══════════════════ -->
 <div class="modal-overlay" id="editModalOverlay" onclick="if(event.target===this)closeEditModal()" style="z-index:210;">
   <div class="modal" style="width:740px;">
@@ -1514,6 +1568,7 @@ let SCRIPT_URL   = localStorage.getItem('scriptUrl') || '';
 let portfolios   = JSON.parse(localStorage.getItem('portfolios') || '[]');
 let allTrades    = JSON.parse(localStorage.getItem('demoTrades') || '{}');
 let activePortId = localStorage.getItem('activePortId') || '';
+let isViewOnly   = false;
 let equityChart  = null;
 let monthlyChart = null;
 let dailyBarChart = null;
@@ -1533,7 +1588,17 @@ let pmColor = PALETTE[0];
 // ════════════════════════════════════════
 // INIT
 // ════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  // ── ซ่อนปุ่ม Edit/Share ทันทีถ้ามี ?s= ใน URL (ก่อน fetch เสร็จ)
+  if (new URLSearchParams(location.search).get('s')) {
+    const a = document.getElementById('addTradeBtn') || document.querySelector('.add-btn');
+    const b = document.getElementById('shareBtnHeader');
+    if (a) a.style.display = 'none';
+    if (b) b.style.display = 'none';
+    document.getElementById('viewOnlyBanner').classList.add('show');
+    showEmpty();
+  }
+
   document.getElementById('sScriptUrl').value = SCRIPT_URL;
   buildColorPicker();
   initCharts();
@@ -1547,18 +1612,26 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('fTarget').addEventListener('input', calcAuto);
   document.getElementById('fSL').addEventListener('input', calcAuto);
 
-  // fRisk: mark as user-edited เมื่อ user พิมพ์เอง (ป้องกัน calcAuto override)
   const riskEl = document.getElementById('fRisk');
   riskEl.addEventListener('input', () => {
     riskEl.dataset.userEdited = '1';
     calcPnlFromRisk();
   });
-  // เมื่อ clear field ให้ถอด flag ออก
   riskEl.addEventListener('change', () => {
     if (!riskEl.value) delete riskEl.dataset.userEdited;
   });
 
-  if (portfolios.length === 0) {
+  // ถ้ามี ?s= ใน URL = เปิดจาก link แชร์
+  const sharedParam = new URLSearchParams(location.search).get('s');
+  const hashShared  = location.hash.startsWith('#share=');
+  if (sharedParam || hashShared) {
+    showLoading('กำลังโหลดข้อมูลพอร์ต');
+  }
+
+  const isShared = await loadSharedFromHash();
+  if (isShared) {
+    loadPort(activePortId);
+  } else if (portfolios.length === 0) {
     showEmpty();
   } else {
     if (!activePortId || !portfolios.find(p => p.id === activePortId))
@@ -2303,8 +2376,8 @@ function renderOrdersTable() {
         <td style="font-size:10px;color:var(--purple);">${t.mode||'—'}</td>
         <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;">${note}</td>
         <td style="white-space:nowrap;">
-          <button class="trade-action-btn edit" title="แก้ไข Trade" onclick="openEditTrade('${safeId}','${portId}')">✏️</button>
-          <button class="trade-action-btn del"  title="ลบ Trade"    onclick="deleteTrade('${safeId}','${portId}')">🗑</button>
+          ${isViewOnly ? '' : `<button class="trade-action-btn edit" title="แก้ไข Trade" onclick="openEditTrade('${safeId}','${portId}')">✏️</button>
+          <button class="trade-action-btn del"  title="ลบ Trade"    onclick="deleteTrade('${safeId}','${portId}')">🗑</button>`}
         </td>
       </tr>`;
     }).join('');
@@ -2568,6 +2641,7 @@ function renderTabs() {
   addBtn.className = 'port-tab-add';
   addBtn.textContent = '＋'; addBtn.title = 'จัดการพอร์ต';
   addBtn.onclick = openPm;
+  if (isViewOnly) addBtn.style.display = 'none';
   bar.appendChild(addBtn);
   const sel = document.getElementById('fPortfolio');
   if (sel) {
@@ -2913,6 +2987,161 @@ function insertEmoji(em) {
   emojiRecentList = [em, ...emojiRecentList.filter(e => e !== em)].slice(0, 16);
   localStorage.setItem('emojiRecents', JSON.stringify(emojiRecentList));
   renderEmojiRecents();
+}
+
+// ════════════════════════════════════════
+// SHARE DASHBOARD
+// ════════════════════════════════════════
+function openShareModal() {
+  if (portfolios.length === 0) { toast('⚠️ ยังไม่มีพอร์ต', 'error'); return; }
+  const sel = document.getElementById('sharePortSelect');
+  sel.innerHTML = portfolios.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  if (activePortId) sel.value = activePortId;
+  document.getElementById('shareUrlBox').textContent = '';
+  document.getElementById('shareUrlBox').style.display = 'none';
+  document.getElementById('shareCopyBtn').style.display = 'none';
+  document.getElementById('shareGenBtn').style.display = 'block';
+  document.getElementById('shareGenBtn').textContent = '🔗 สร้าง Link';
+  document.getElementById('shareGenBtn').disabled = false;
+  document.getElementById('shareErrBox').style.display = 'none';
+  document.getElementById('shareOverlay').classList.add('show');
+}
+function closeShareModal() { document.getElementById('shareOverlay').classList.remove('show'); }
+
+async function generateShareLink() {
+  const btn    = document.getElementById('shareGenBtn');
+  const portId = document.getElementById('sharePortSelect').value;
+  const port   = portfolios.find(p => p.id === portId);
+  if (!port) return;
+
+  if (!SCRIPT_URL) {
+    document.getElementById('shareErrBox').textContent = '❌ ยังไม่ได้ตั้งค่า Script URL — ไปที่ ＋ Add Trade / Settings → Settings แล้วกรอก URL';
+    document.getElementById('shareErrBox').style.display = 'block';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = '⏳ กำลังสร้าง Link...';
+  document.getElementById('shareErrBox').style.display = 'none';
+
+  const trades  = allTrades[portId] || [];
+  const payload = JSON.stringify({ port, trades });
+
+  try {
+    const res  = await fetch(SCRIPT_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ action: 'saveShare', payload })
+    });
+    const data = await res.json();
+    if (data.success && data.id) {
+      const gsParam = btoa(SCRIPT_URL);
+      const url = location.href.split('?')[0].split('#')[0] + '?s=' + data.id + '&gs=' + encodeURIComponent(gsParam);
+      showShareUrl(url);
+      return;
+    }
+    throw new Error(data.error || 'GAS ไม่ตอบกลับ success');
+  } catch(e) {
+    btn.disabled = false;
+    btn.textContent = '🔗 ลองใหม่';
+    document.getElementById('shareErrBox').textContent = '❌ สร้าง Link ไม่ได้: ' + e.message + ' — กรุณา Re-deploy Google Apps Script ใหม่ (New Deployment)';
+    document.getElementById('shareErrBox').style.display = 'block';
+  }
+}
+
+function showShareUrl(url) {
+  const box = document.getElementById('shareUrlBox');
+  box.textContent = url;
+  box.style.display = 'block';
+  document.getElementById('shareCopyBtn').style.display = 'block';
+  document.getElementById('shareGenBtn').style.display = 'none';
+}
+
+function copyShareLink() {
+  const url = document.getElementById('shareUrlBox').textContent;
+  if (!url) return;
+  const btn = document.getElementById('shareCopyBtn');
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(url).then(() => {
+      btn.textContent = '✅ คัดลอกแล้ว!';
+      btn.style.background = 'var(--accent)'; btn.style.color = '#fff';
+      setTimeout(() => { btn.textContent = '📋 คัดลอก Link'; btn.style.background = ''; btn.style.color = ''; }, 2500);
+      toast('✅ คัดลอก Link แล้ว!', 'success');
+    });
+    return;
+  }
+  const ta = document.createElement('textarea');
+  ta.value = url; ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+  document.body.appendChild(ta); ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    btn.textContent = '✅ คัดลอกแล้ว!';
+    setTimeout(() => { btn.textContent = '📋 คัดลอก Link'; }, 2500);
+    toast('✅ คัดลอก Link แล้ว!', 'success');
+  } catch(e) { toast('⚠️ กด Ctrl+C เพื่อคัดลอก', 'error'); }
+  document.body.removeChild(ta);
+}
+
+// ── Load shared data from URL ──
+async function loadSharedFromHash() {
+  const params  = new URLSearchParams(location.search);
+  const shareId = params.get('s');
+  const gsParam = params.get('gs');
+
+  if (shareId) {
+    let scriptToUse = SCRIPT_URL;
+    if (gsParam) { try { scriptToUse = atob(decodeURIComponent(gsParam)); } catch(e) {} }
+
+    if (scriptToUse) {
+      try {
+        const res  = await fetch(`${scriptToUse}?action=getShare&id=${encodeURIComponent(shareId)}`);
+        const data = await res.json();
+        if (data.success && data.payload) {
+          hideLoading();
+          return applySharedPayload(data.payload);
+        }
+      } catch(e) { console.warn('Short share load error:', e); }
+    }
+    hideLoading();
+  }
+
+  // Fallback: #share= base64 in hash
+  const hash = location.hash;
+  if (hash.startsWith('#share=')) {
+    try {
+      const b64    = hash.slice(7);
+      const result = applySharedPayload(decodeURIComponent(escape(atob(b64))));
+      hideLoading();
+      return result;
+    } catch(e) { console.warn('Hash share parse error:', e); hideLoading(); }
+  }
+
+  hideLoading();
+  return false;
+}
+
+function applySharedPayload(jsonStr) {
+  try {
+    const { port, trades } = JSON.parse(jsonStr);
+    if (!port || !trades) return false;
+    portfolios   = [port];
+    allTrades    = { [port.id]: trades };
+    activePortId = port.id;
+    SCRIPT_URL   = '';
+    isViewOnly   = true;
+    const addBtn = document.querySelector('.add-btn');
+    if (addBtn) addBtn.style.display = 'none';
+    const shareBtnH = document.getElementById('shareBtnHeader');
+    if (shareBtnH) shareBtnH.style.display = 'none';
+    document.getElementById('viewOnlyBanner').classList.add('show');
+    // ซ่อน port bar (share view มีแค่พอร์ตเดียว)
+    const portBar = document.getElementById('portBar');
+    if (portBar) portBar.style.display = 'none';
+    const portLabelBar = document.querySelector('.port-label-bar');
+    if (portLabelBar) portLabelBar.style.display = 'none';
+    document.querySelectorAll('.port-tab-add').forEach(b => b.style.display = 'none');
+    return true;
+  } catch(e) { return false; }
 }
 
 // ════════════════════════════════════════
