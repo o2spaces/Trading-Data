@@ -1722,13 +1722,12 @@ function getTradeDate(t) {
   return '—';
 }
 
-// รวม date + timeEntry เป็น datetime string สำหรับ sort ที่แม่นยำ
+// รวม date + timeEntry (HH:MM) เป็น "YYYY-MM-DDTHH:MM" สำหรับ sort ที่แม่นยำ
 function getTradeDatetime(t) {
   const dateStr = getTradeDate(t);
   if (dateStr === '—') return '0000-00-00T00:00';
-  // timeEntry เก็บในรูป "HH:MM"
-  const time = (t.timeEntry && /^\d{1,2}:\d{2}/.test(t.timeEntry))
-    ? t.timeEntry.padStart(5, '0')
+  const time = (t.timeEntry && /^\d{1,2}:\d{2}/.test(String(t.timeEntry)))
+    ? String(t.timeEntry).padStart(5, '0')
     : '00:00';
   return dateStr + 'T' + time;
 }
