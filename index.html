@@ -1987,7 +1987,7 @@ async function _doSaveTrade() {
       // อัพเดต id จาก temp → id จริงจาก Sheet
       const idx = allTrades[portId].findIndex(t => t.id === tempId);
       if (idx !== -1) {
-        allTrades[portId][idx] = { ...localTrade, id: data.id || tempId, _syncing: false };
+        allTrades[portId][idx] = { ...localTrade, id: data.id, _syncing: false };
         savePorts();
       }
       toast('☁️ ซิงค์ Sheet เรียบร้อย', 'success');
@@ -2562,7 +2562,6 @@ function goPage(p) {
 function savePorts() {
   localStorage.setItem('portfolios', JSON.stringify(portfolios));
   localStorage.setItem('activePortId', activePortId);
-  localStorage.setItem('demoTrades', JSON.stringify(allTrades)); // ✅ FIX: บันทึก trades ด้วยทุกครั้ง
 }
 
 function addPortfolio() {
@@ -3832,12 +3831,21 @@ async function doAiScan() {
     '',
     '5. SIDE — "สถานะ Short" or Thai title = Short, "สถานะ Long" = Long',
     '',
-    '6. ENTRY TIME — CRITICAL: Look at the bottom X-AXIS of the chart area.',
-    '   Find the LEFTMOST blue highlighted timestamp label.',
-    '   Thai format example: "า. 10 มี.ค. 26 09:42:05"',
-    '   Month map: ม.ค.=01 ก.พ.=02 มี.ค.=03 เม.ย.=04 พ.ค.=05 มิ.ย.=06 ก.ค.=07 ส.ค.=08 ก.ย.=09 ต.ค.=10 พ.ย.=11 ธ.ค.=12',
-    '   Year: "26"=2026. Return as "HH:MM" (time only), e.g. "09:42"',
-    '   Also return full date as "YYYY-MM-DD", e.g. "2026-03-10"',
+    '6. ENTRY TIME — CRITICAL RULES (read very carefully):',
+    '   STEP 1: Look ONLY at the horizontal X-AXIS timeline bar at the very bottom of the chart.',
+    '   STEP 2: Find ALL blue/highlighted timestamp labels on that X-axis bar.',
+    '   STEP 3: Use ONLY the FIRST (leftmost) blue label. IGNORE all other blue labels completely.',
+    '   STEP 4: Read the exact time digits from that ONE label only. Do NOT average or guess.',
+    '',
+    '   SUPPORTED FORMATS on the blue label:',
+    '   • English (TradingView default): "Fri 10 Apr \'26 06:10:10" → time=06:10, date=2026-04-10',
+    '   • Thai UI: "ศ. 10 เม.ย. 26 06:10:10" → time=06:10, date=2026-04-10',
+    '   • Short: "10 Apr \'26 06:10" → same logic',
+    '',
+    '   Thai month: ม.ค.=01 ก.พ.=02 มี.ค.=03 เม.ย.=04 พ.ค.=05 มิ.ย.=06 ก.ค.=07 ส.ค.=08 ก.ย.=09 ต.ค.=10 พ.ย.=11 ธ.ค.=12',
+    '   English month: Jan=01 Feb=02 Mar=03 Apr=04 May=05 Jun=06 Jul=07 Aug=08 Sep=09 Oct=10 Nov=11 Dec=12',
+    '   Year: "26" or "\'26" = 2026. Return time as "HH:MM", date as "YYYY-MM-DD".',
+    '   FINAL CHECK: Re-read that leftmost blue label once more to confirm digits before outputting.',
     '',
     'Return ONLY raw JSON, no markdown:',
     '{"asset":"","side":"Long","entry":"","target":"","sl":"","entry_time":"","entry_date":""}'
