@@ -106,7 +106,7 @@ function handleGetTrades(sheetName) {
     result      : row[16] || '',   // Q
     risk        : +row[17]|| 0,    // R
     slPoints    : +row[18]|| 0,    // S: SL Distance
-    lots        : +row[19]|| 0,    // T: Lots
+    lots        : parseInt(row[19])|| 0,  // T: Lots (integer)
     maxRR       : +row[20]|| 0,    // U: Max RR
     position    : row[21] || '',   // V: Position
     point       : +row[22]|| 0,    // W
@@ -300,7 +300,6 @@ function handleDeleteTrade(tradeId, sheetName) {
   for (let r = 1; r < data.length; r++) {
     if (String(data[r][0]) === String(tradeId)) {
       sheet.deleteRow(r + 1);
-      recalculateAllRows(sheet); // recalculate ทุก row หลัง delete
       return respond({ success: true });
     }
   }
@@ -312,7 +311,6 @@ function handleUpdateTrade(trade, sheetName) {
   if (!trade || !trade.id) return respond({ success: false, error: 'ต้องระบุ trade.id' });
   const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName);
   if (!sheet) return respond({ success: false, error: 'ไม่พบ Sheet: ' + sheetName });
-
   const data = sheet.getDataRange().getValues();
   let rowIndex = -1;
   for (let r = 1; r < data.length; r++) {
@@ -320,24 +318,29 @@ function handleUpdateTrade(trade, sheetName) {
   }
   if (rowIndex === -1) return respond({ success: false, error: 'ไม่พบ trade id: ' + trade.id });
 
-  // ── คำนวณค่าใหม่ของ row นี้ ──
-  const entry    = parseFloat(trade.priceEntry)  || 0;
-  const target   = parseFloat(trade.priceTarget) || 0;
-  const sl       = parseFloat(trade.priceSL)     || 0;
-  const risk     = parseFloat(trade.risk)        || 0;
-  const result   = trade.result || '';
-  const asset    = trade.asset  || '';
-  const slDist   = parseFloat(trade.slPoints) || 0;
-  const lots     = parseFloat(trade.lots)     || 0;
+  const entry  = parseFloat(trade.priceEntry)  || 0;
+  const target = parseFloat(trade.priceTarget) || 0;
+  const sl     = parseFloat(trade.priceSL)     || 0;
+  const risk   = parseFloat(trade.risk)        || 0;
+  const result = trade.result || '';
+  const asset  = trade.asset  || '';
+  const slDist = parseFloat(trade.slPoints) || 0;
+  const lots   = parseFloat(trade.lots)     || 0;
 
-  const position  = entry > 0 && sl > 0 ? (entry > sl ? 'Buy' : 'Sell') : (trade.position || '');
-  const point     = entry > 0 && target > 0 ? Math.abs(target - entry) : 0;
-  const riskPts   = entry > 0 && sl > 0     ? Math.abs(entry - sl) : 0;
-  const rr        = riskPts > 0 ? point / riskPts : (parseFloat(trade.rr) || 0);
-  const pnl       = result === 'TP'   ? risk * rr
-                  : result === 'Loss' ? -risk : 0;
+  const position = entry > 0 && sl > 0 ? (entry > sl ? 'Buy' : 'Sell') : (trade.position || '');
+  const point    = entry > 0 && target > 0 ? Math.abs(target - entry) : 0;
+  const riskPts  = entry > 0 && sl > 0     ? Math.abs(entry - sl) : 0;
+  const rr       = riskPts > 0 ? point / riskPts : (parseFloat(trade.rr) || 0);
+  const pnl      = result === 'TP'   ? risk * rr
+                 : result === 'Loss' ? -risk : 0;
   const tp_dollar = result === 'TP'   ? pnl : 0;
   const sl_dollar = result === 'Loss' ? pnl : 0;
+
+  let initBalance = 10000;
+  try {
+    const note = sheet.getRange('A1').getNote();
+    if (note && !isNaN(parseFloat(note))) initBalance = parseFloat(note);
+  } catch(e) {}
 
   let tradeDate = new Date();
   if (trade.date) {
@@ -346,149 +349,67 @@ function handleUpdateTrade(trade, sheetName) {
     else tradeDate = new Date(trade.date);
   }
 
-  // ── เขียนคอลัมน์ Input (A–U = col 1–21) + Position/Point/RR (V/W/X = 22/23/24) ──
-  // ยังไม่เขียน Auto stat cols (Y..AG) — จะให้ recalculateAllRows จัดการ
-  const inputVals = [
-    trade.id,              // A:1  ID
-    tradeDate,             // B:2  Date
-    trade.day        || '',// C:3  Day
-    trade.session    || '',// D:4  Session
-    trade.timeSlot   || '',// E:5  Time Slot
-    asset,                 // F:6  Asset
-    trade.duration   || 0, // G:7  Duration
-    trade.timeEntry  || '',// H:8  Time Entry
-    trade.code       || '',// I:9  Code
-    trade.cls        || '',// J:10 Class
-    trade.mode       || '',// K:11 Mode
-    trade.model      || '',// L:12 Model
-    trade.zone       || '',// M:13 Zone
-    entry,                 // N:14 Entry
-    target,                // O:15 Target
-    sl,                    // P:16 Stop Loss
-    result,                // Q:17 Result
-    risk,                  // R:18 Risk ($)
-    slDist,                // S:19 SL Distance
-    lots,                  // T:20 Lots
-    trade.maxRR      || 0, // U:21 Max RR
-    position,              // V:22 Position ← Auto
-    parseFloat(point.toFixed(4)),  // W:23 Point ← Auto
-    parseFloat(rr.toFixed(4)),     // X:24 RR ← Auto
-    parseFloat(pnl.toFixed(2)),    // Y:25 PnL ($) ← (recalc จะ overwrite)
-    parseFloat(tp_dollar.toFixed(2)), // Z:26
-    parseFloat(sl_dollar.toFixed(2)), // AA:27
-    '',                    // AB:28 TP%      — recalc จะ overwrite
-    '',                    // AC:29 DD Loss% — recalc จะ overwrite
-    0,                     // AD:30 Con Loss — recalc จะ overwrite
-    0,                     // AE:31 Sum Con Loss$ — recalc จะ overwrite
-    0,                     // AF:32 Sum DD Loss$ — recalc จะ overwrite
-    0,                     // AG:33 Balance — recalc จะ overwrite
-    trade.pictureUrl || '',// AH:34 Picture URL
-    trade.tip        || '',// AI:35 Tip / Note
-    data[rowIndex-1][35] || '' // AJ:36 Created At (keep original)
+  const tpPct = initBalance > 0 && pnl !== 0 ? (pnl / initBalance * 100).toFixed(2) + '%' : '—';
+
+  const rowVals = [
+    trade.id,              // A: ID
+    tradeDate,             // B: Date
+    trade.day        || '',// C: Day
+    trade.session    || '',// D: Session
+    trade.timeSlot   || '',// E: Time Slot
+    asset,                 // F: Asset
+    trade.duration   || 0, // G: Duration
+    trade.timeEntry  || '',// H: Time Entry
+    trade.code       || '',// I: Code
+    trade.cls        || '',// J: Class
+    trade.mode       || '',// K: Mode
+    trade.model      || '',// L: Model
+    trade.zone       || '',// M: Zone
+    entry,                 // N: Entry
+    target,                // O: Target
+    sl,                    // P: Stop Loss
+    result,                // Q: Result
+    risk,                  // R: Risk ($)
+    slDist,                // S: SL Distance
+    lots,                  // T: Lots
+    trade.maxRR      || 0, // U: Max RR
+    position,              // V: Position
+    parseFloat(point.toFixed(4)),     // W: Point
+    parseFloat(rr.toFixed(4)),        // X: RR
+    parseFloat(pnl.toFixed(2)),       // Y: PnL ($)
+    parseFloat(tp_dollar.toFixed(2)), // Z: TP ($)
+    parseFloat(sl_dollar.toFixed(2)), // AA: SL ($)
+    tpPct,                            // AB: TP%
+    data[rowIndex-1][28] || '',       // AC: DD Loss% (keep existing)
+    data[rowIndex-1][29] || 0,        // AD: Con Loss (keep existing)
+    data[rowIndex-1][30] || 0,        // AE: Sum Con Loss$ (keep existing)
+    data[rowIndex-1][31] || 0,        // AF: Sum DD Loss$ (keep existing)
+    data[rowIndex-1][32] || 0,        // AG: Balance (keep existing)
+    trade.pictureUrl || '',           // AH: Picture URL
+    trade.tip        || '',           // AI: Tip / Note
+    data[rowIndex-1][35] || ''        // AJ: Created At (keep original)
   ];
 
-  sheet.getRange(rowIndex, 1, 1, TOTAL_COLS).setValues([inputVals]);
+  sheet.getRange(rowIndex, 1, 1, TOTAL_COLS).setValues([rowVals]);
 
-  // ── Format row นี้ ──
+  // Re-format the row
   sheet.getRange(rowIndex, 2).setNumberFormat('dd/mm/yyyy');
-  [14,15,16,18,19,20,21,23,24].forEach(col => {
+  [14,15,16,18,19,20,21,23,24,25,26,27,33].forEach(col => {
     sheet.getRange(rowIndex, col).setNumberFormat('#,##0.00');
   });
   const colMap = { 'TP':['#0d4f1e','#3fb950'], 'Loss':['#4f0d0d','#f85149'], 'Miss':['#3a3a0d','#ffd166'] };
-  if (colMap[result]) sheet.getRange(rowIndex, 17).setBackground(colMap[result][0]).setFontColor(colMap[result][1]);
-  if (position === 'Buy')  sheet.getRange(rowIndex, 22).setFontColor('#3fb950');
-  if (position === 'Sell') sheet.getRange(rowIndex, 22).setFontColor('#f85149');
+  const resultCell = sheet.getRange(rowIndex, 17);
+  if (colMap[result]) resultCell.setBackground(colMap[result][0]).setFontColor(colMap[result][1]);
+  const pnlCell = sheet.getRange(rowIndex, 25);
+  if (pnl > 0) pnlCell.setFontColor('#3fb950');
+  else if (pnl < 0) pnlCell.setFontColor('#f85149');
+  const posCell = sheet.getRange(rowIndex, 22);
+  if (position === 'Buy')  posCell.setFontColor('#3fb950');
+  if (position === 'Sell') posCell.setFontColor('#f85149');
   sheet.getRange(rowIndex, 6).setFontColor('#39d0d8');
   sheet.getRange(rowIndex, 22, 1, 12).setBackground('#0d1a1a');
 
-  // ── Recalculate ALL rows (Balance, ConLoss, DD%, TP%, SumDD) ──
-  recalculateAllRows(sheet);
-
   return respond({ success: true });
-}
-
-// ─── RECALCULATE ALL ROWS (running stats) ────────────────────
-// เรียกหลัง update หรือ delete เพื่อให้ Balance/ConLoss/DD% ถูกต้องทุก row
-function recalculateAllRows(sheet) {
-  const data = sheet.getDataRange().getValues();
-  if (data.length <= 1) return;
-
-  let initBalance = 10000;
-  try {
-    const note = sheet.getRange('A1').getNote();
-    if (note && !isNaN(parseFloat(note))) initBalance = parseFloat(note);
-  } catch(e) {}
-
-  let runBal        = initBalance;
-  let peak          = initBalance;
-  let conLossStreak = 0;
-  let sumConLoss    = 0;
-  let sumDDLoss     = 0;
-
-  for (let r = 1; r < data.length; r++) {
-    const row    = data[r];
-    const rowNum = r + 1;
-
-    // อ่านค่า input ที่เขียนไว้แล้ว (col Q=17→index16, R=18→index17, X=24→index23)
-    const result   = String(row[16] || '');
-    const risk     = parseFloat(row[17]) || 0;
-    const rr       = parseFloat(row[23]) || 0;
-
-    // คำนวณ PnL ใหม่จาก result/risk/rr
-    const pnl       = result === 'TP'   ? risk * rr
-                    : result === 'Loss' ? -risk : 0;
-    const tp_dollar = result === 'TP'   ? pnl : 0;
-    const sl_dollar = result === 'Loss' ? pnl : 0;
-
-    // Balance
-    const newBalance = runBal + pnl;
-
-    // TP%
-    const tpPct = initBalance > 0 && pnl !== 0
-      ? (pnl / initBalance * 100).toFixed(2) + '%' : '—';
-
-    // DD%
-    if (newBalance > peak) peak = newBalance;
-    const ddPct = peak > 0
-      ? ((peak - newBalance) / peak * 100).toFixed(2) + '%' : '0%';
-
-    // Con Loss
-    if (result === 'Loss') {
-      conLossStreak++;
-      sumConLoss += Math.abs(pnl);
-    } else {
-      conLossStreak = 0;
-      sumConLoss    = 0;
-    }
-
-    // Sum DD Loss (cumulative losses)
-    if (pnl < 0) sumDDLoss += Math.abs(pnl);
-
-    // เขียน auto cols: Y(25)..AG(33) → sheet col 25..33 (1-based)
-    const autoVals = [[
-      parseFloat(pnl.toFixed(2)),           // Y:25 PnL ($)
-      parseFloat(tp_dollar.toFixed(2)),     // Z:26 TP ($)
-      parseFloat(sl_dollar.toFixed(2)),     // AA:27 SL ($)
-      tpPct,                                // AB:28 TP%
-      ddPct,                                // AC:29 DD Loss%
-      conLossStreak,                        // AD:30 Con Loss
-      parseFloat(sumConLoss.toFixed(2)),    // AE:31 Sum Con Loss$
-      parseFloat(sumDDLoss.toFixed(2)),     // AF:32 Sum DD Loss$
-      parseFloat(newBalance.toFixed(2))     // AG:33 Balance
-    ]];
-    sheet.getRange(rowNum, 25, 1, 9).setValues(autoVals);
-
-    // Format PnL color
-    const pnlCell = sheet.getRange(rowNum, 25);
-    if (pnl > 0)      pnlCell.setFontColor('#3fb950');
-    else if (pnl < 0) pnlCell.setFontColor('#f85149');
-    else              pnlCell.setFontColor('#dce8f5');
-
-    // Format number cols
-    [25,26,27,33].forEach(col => sheet.getRange(rowNum, col).setNumberFormat('#,##0.00'));
-
-    runBal = newBalance;
-  }
 }
 
 // ─── SHARE SNAPSHOT ──────────────────────────────────────────

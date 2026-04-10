@@ -1987,7 +1987,7 @@ async function _doSaveTrade() {
       // อัพเดต id จาก temp → id จริงจาก Sheet
       const idx = allTrades[portId].findIndex(t => t.id === tempId);
       if (idx !== -1) {
-        allTrades[portId][idx] = { ...localTrade, id: data.id, _syncing: false };
+        allTrades[portId][idx] = { ...localTrade, id: data.id || tempId, _syncing: false };
         savePorts();
       }
       toast('☁️ ซิงค์ Sheet เรียบร้อย', 'success');
@@ -2562,6 +2562,7 @@ function goPage(p) {
 function savePorts() {
   localStorage.setItem('portfolios', JSON.stringify(portfolios));
   localStorage.setItem('activePortId', activePortId);
+  localStorage.setItem('demoTrades', JSON.stringify(allTrades)); // ✅ FIX: บันทึก trades ด้วยทุกครั้ง
 }
 
 function addPortfolio() {
